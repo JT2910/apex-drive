@@ -142,7 +142,9 @@
     }
     .video-modal.open { display: flex; }
     .video-modal-inner {
-      position: relative; width: 90vw; max-width: 960px;
+      position: relative;
+      width: min(90vw, calc(82vh * 16 / 9));
+      max-width: 960px;
       aspect-ratio: 16/9;
     }
     .video-modal-inner iframe {
