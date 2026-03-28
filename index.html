@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>APEX DRIVE — Curated Driving Experiences</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;600;700&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --rosso: #B8272D;
+      --black: #0a0a0a;
+      --dark: #111111;
+      --dark-2: #181818;
+      --dark-3: #202020;
+      --grey-dark: #2e2e2e;
+      --grey-mid: #555555;
+      --grey-light: #999999;
+      --off-white: #F4F1EC;
+      --white-section: #EDEAE4;
+      --white: #F0EDE8;
+      --ink: #1a1a1a;
+      --ink-light: #484848;
+      --ink-muted: #888888;
+      --font-display: 'Bebas Neue', sans-serif;
+      --font-condensed: 'Barlow Condensed', sans-serif;
+      --font-body: 'Barlow', sans-serif;
+    }
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    html { scroll-behavior:smooth; }
+    body { background:var(--black); color:var(--white); font-family:var(--font-body); font-weight:300; overflow-x:hidden; cursor:none; }
+
+    /* CURSOR */
+    .cursor { position:fixed; width:8px; height:8px; background:var(--rosso); border-radius:50%; pointer-events:none; z-index:9999; transform:translate(-50%,-50%); }
+    .cursor-ring { position:fixed; width:32px; height:32px; border:1px solid rgba(180,180,180,0.2); border-radius:50%; pointer-events:none; z-index:9998; transform:translate(-50%,-50%); transition:all 0.18s ease; }
+
+    /* NOISE */
+    body::before { content:''; position:fixed; inset:0; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E"); opacity:0.025; pointer-events:none; z-index:9000; }
+
+    /* NAV */
+    nav { position:fixed; top:0; left:0; right:0; z-index:1000; display:flex; align-items:center; justify-content:space-between; padding:1.4rem 3rem; background:linear-gradient(to bottom,rgba(10,10,10,0.95),transparent); transition:background 0.4s,border 0.4s; }
+    nav.scrolled { background:rgba(10,10,10,0.97); border-bottom:1px solid rgba(255,255,255,0.04); }
+    .logo { font-family:var(--font-display); font-size:1.9rem; letter-spacing:0.12em; color:var(--white); text-decoration:none; }
+    .logo span { color:var(--rosso); }
+    .nav-links { display:flex; align-items:center; gap:2.2rem; list-style:none; }
+    .nav-links a { font-family:var(--font-condensed); font-size:0.78rem; letter-spacing:0.2em; text-transform:uppercase; color:rgba(255,255,255,0.4); text-decoration:none; transition:color 0.2s; }
+    .nav-links a:hover { color:var(--white); }
+    .nav-socials { display:flex; gap:1.1rem; align-items:center; }
+    .nav-socials a { color:rgba(255,255,255,0.22); transition:color 0.2s; display:flex; }
+    .nav-socials a:hover { color:rgba(255,255,255,0.65); }
+    .nav-socials svg { width:16px; height:16px; fill:currentColor; }
+
+    /* ═══════════════════════════════════════════
+       HERO — full viewport cinematic scene
+    ═══════════════════════════════════════════ */
+    .hero {
+      position: relative;
+      height: 100vh;
+      min-height: 700px;
+      overflow: hidden;
+      background: #0d0d0d;
+      display: flex;
+      align-items: flex-end;
+    }
+
+    /* The full-bleed photo */
+    .hero-scene {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 40%;
+    }
+
+    /* Gradient overlay — stronger vignette suited to a real photo */
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(to bottom,
+          rgba(8,8,8,0.72) 0%,
+          rgba(8,8,8,0.08) 28%,
+          rgba(8,8,8,0.04) 52%,
+          rgba(8,8,8,0.45) 75%,
+          rgba(8,8,8,0.88) 100%
+        ),
+        /* subtle left vignette so text is legible */
+        linear-gradient(to right,
+          rgba(8,8,8,0.55) 0%,
+          rgba(8,8,8,0.0) 45%
+        );
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* ── SMOKE ──
+       Positioned over the exhaust area of a low rear-angle car photo.
+       The car in a typical rear shot sits bottom-centre; exhausts are
+       roughly 42–52% from left, 8–14% from bottom.
+       Adjust --ex-left and --ex-bottom as CSS vars to fine-tune. */
+    .exhaust-wrap {
+      position: absolute;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 220px;
+      pointer-events: none;
+      z-index: 3;
+      opacity: 0;
+      animation: exhaustFadeIn 3s ease forwards;
+    }
+    .exhaust-right { animation-delay: 0.4s; }
+    @keyframes exhaustFadeIn {
+      0%   { opacity: 0; }
+      100% { opacity: 1; }
+    }
+
+    /* Individual smoke puff */
+    .smoke-puff {
+      position: absolute;
+      bottom: 0;
+      border-radius: 50%;
+      background: radial-gradient(circle,
+        rgba(235,232,228,0.75) 0%,
+        rgba(220,218,214,0.45) 45%,
+        transparent 72%
+      );
+      filter: blur(8px);
+      animation: puffRise linear infinite;
+    }
+
+    /* Staggered sizes — subtle, not cartoonish */
+    .smoke-puff:nth-child(1) { width:28px; height:28px; left:52px;  animation-duration:5.2s; animation-delay:0.0s; }
+    .smoke-puff:nth-child(2) { width:20px; height:20px; left:44px;  animation-duration:4.4s; animation-delay:1.1s; }
+    .smoke-puff:nth-child(3) { width:34px; height:34px; left:58px;  animation-duration:6.0s; animation-delay:0.5s; }
+    .smoke-puff:nth-child(4) { width:24px; height:24px; left:48px;  animation-duration:4.8s; animation-delay:2.2s; }
+    .smoke-puff:nth-child(5) { width:18px; height:18px; left:62px;  animation-duration:3.8s; animation-delay:3.0s; }
+    .smoke-puff:nth-child(6) { width:30px; height:30px; left:55px;  animation-duration:5.6s; animation-delay:1.7s; }
+    .smoke-puff:nth-child(7) { width:22px; height:22px; left:50px;  animation-duration:4.2s; animation-delay:0.8s; }
+    .smoke-puff:nth-child(8) { width:38px; height:38px; left:46px;  animation-duration:6.8s; animation-delay:2.6s; }
+
+    @keyframes puffRise {
+      0%   {
+        transform: translateY(0) translateX(0) scale(0.35);
+        opacity: 0;
+      }
+      6%   { opacity: 0.55; }
+      30%  { opacity: 0.32; }
+      65%  { opacity: 0.14; }
+      100% {
+        transform: translateY(-190px) translateX(-22px) scale(4.5);
+        opacity: 0;
+      }
+    }
+
+    /* Mobile — exhaust pipes land at a different crop position */
+    @media(max-width:900px){
+      .exhaust-wrap:not(.exhaust-right) { left:74% !important; bottom:12% !important; }
+      .exhaust-right { left:81% !important; bottom:12% !important; }
+    }
+
+    /* Right pipe — offset all puff timings so pipes look independent */
+    .exhaust-right .smoke-puff:nth-child(1) { animation-delay:0.6s; }
+    .exhaust-right .smoke-puff:nth-child(2) { animation-delay:1.8s; }
+    .exhaust-right .smoke-puff:nth-child(3) { animation-delay:0.2s; }
+    .exhaust-right .smoke-puff:nth-child(4) { animation-delay:2.9s; }
+    .exhaust-right .smoke-puff:nth-child(5) { animation-delay:3.6s; }
+    .exhaust-right .smoke-puff:nth-child(6) { animation-delay:1.1s; }
+    .exhaust-right .smoke-puff:nth-child(7) { animation-delay:0.4s; }
+    .exhaust-right .smoke-puff:nth-child(8) { animation-delay:2.1s; }
+
+    /* Remove water drops — not needed over a real photo */
+    .drops-fx { display: none; }
+
+    /* ── HERO TEXT ── */
+    .hero-content {
+      position: relative;
+      z-index: 10;
+      padding: 0 3.5rem 5.5rem;
+      max-width: 620px;
+    }
+    .hero-eyebrow {
+      font-family: var(--font-condensed);
+      font-size: 0.68rem;
+      letter-spacing: 0.38em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.3);
+      margin-bottom: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+    }
+    .hero-eyebrow::before { content:''; display:block; width:26px; height:1px; background:rgba(255,255,255,0.18); }
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(4.5rem, 9.5vw, 9rem);
+      line-height: 0.88;
+      letter-spacing: 0.03em;
+      color: var(--white);
+      margin-bottom: 1.6rem;
+      text-shadow: 0 2px 40px rgba(0,0,0,0.8);
+    }
+    .hero-title em { font-style:normal; color:var(--rosso); }
+    .hero-sub {
+      font-family: var(--font-condensed);
+      font-size: 1rem;
+      font-weight: 300;
+      letter-spacing: 0.07em;
+      color: rgba(255,255,255,0.42);
+      max-width: 380px;
+      line-height: 1.65;
+      margin-bottom: 2.4rem;
+    }
+    .hero-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.8rem;
+      font-family: var(--font-condensed);
+      font-size: 0.74rem;
+      font-weight: 600;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: var(--white);
+      text-decoration: none;
+      border: 1px solid rgba(255,255,255,0.22);
+      padding: 0.9rem 2rem;
+      transition: border-color 0.25s, background 0.25s;
+      backdrop-filter: blur(4px);
+    }
+    .hero-cta:hover { border-color:rgba(255,255,255,0.6); background:rgba(255,255,255,0.04); }
+    .hero-cta svg { width:13px; height:13px; fill:currentColor; transition:transform 0.2s; }
+    .hero-cta:hover svg { transform:translateX(4px); }
+
+    /* Holding image badge */
+    .holding-badge {
+      position: absolute;
+      top: 5.5rem;
+      right: 2.5rem;
+      z-index: 10;
+      font-family: var(--font-condensed);
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.18);
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 0.4rem 0.8rem;
+      backdrop-filter: blur(4px);
+    }
+
+    .hero-scroll { position:absolute; bottom:2.5rem; right:3rem; display:flex; flex-direction:column; align-items:center; gap:0.5rem; z-index:10; }
+    .hero-scroll span { font-family:var(--font-condensed); font-size:0.6rem; letter-spacing:0.28em; text-transform:uppercase; color:rgba(255,255,255,0.18); writing-mode:vertical-rl; }
+    .scroll-line { width:1px; height:55px; background:linear-gradient(to bottom,rgba(255,255,255,0.25),transparent); animation:scrollPulse 2s ease-in-out infinite; }
+    @keyframes scrollPulse{0%,100%{opacity:0.3;}50%{opacity:1;}}
+
+    /* ─── REST OF PAGE STYLES ─── */
+    .section-label-dark { font-family:var(--font-condensed); font-size:0.65rem; letter-spacing:0.34em; text-transform:uppercase; color:var(--grey-mid); display:flex; align-items:center; gap:0.8rem; margin-bottom:0.9rem; }
+    .section-label-dark::before { content:''; display:block; width:20px; height:1px; background:currentColor; }
+    .section-label-light { font-family:var(--font-condensed); font-size:0.65rem; letter-spacing:0.34em; text-transform:uppercase; color:var(--ink-muted); display:flex; align-items:center; gap:0.8rem; margin-bottom:0.9rem; }
+    .section-label-light::before { content:''; display:block; width:20px; height:1px; background:currentColor; }
+    .h-dark { font-family:var(--font-display); font-size:clamp(2.8rem,5.5vw,4.8rem); letter-spacing:0.04em; line-height:0.92; color:var(--white); margin-bottom:1.5rem; }
+    .h-light { font-family:var(--font-display); font-size:clamp(2.8rem,5.5vw,4.8rem); letter-spacing:0.04em; line-height:0.92; color:var(--ink); margin-bottom:1.5rem; }
+    .reveal { opacity:0; transform:translateY(26px); transition:opacity 0.7s ease,transform 0.7s ease; }
+    .reveal.in-view { opacity:1; transform:translateY(0); }
+    .rd1{transition-delay:0.1s;}.rd2{transition-delay:0.22s;}.rd3{transition-delay:0.34s;}
+
+    /* MARQUEE */
+    .marquee-strip { height:80px; overflow:hidden; background:var(--dark-2); border-top:1px solid rgba(255,255,255,0.03); border-bottom:1px solid rgba(255,255,255,0.03); display:flex; align-items:center; }
+    .marquee-track { display:flex; white-space:nowrap; animation:marqueeScroll 24s linear infinite; }
+    .marquee-track span { font-family:var(--font-display); font-size:1rem; letter-spacing:0.3em; color:rgba(255,255,255,0.06); text-transform:uppercase; padding:0 2rem; }
+    .marquee-track span.sep { color:rgba(184,39,45,0.25); font-size:0.4rem; vertical-align:middle; }
+    @keyframes marqueeScroll{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
+
+    /* OFFER */
+    #offer { padding:8rem 3rem; background:var(--dark); }
+    .offer-layout { display:grid; grid-template-columns:280px 1fr; gap:6rem; align-items:start; }
+    .offer-sidebar { position:sticky; top:8rem; }
+    .offer-sidebar p { font-family:var(--font-condensed); font-size:0.86rem; letter-spacing:0.04em; color:rgba(255,255,255,0.28); line-height:1.72; margin-top:1.2rem; }
+    .offer-cards { display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--grey-dark); }
+    .offer-card { background:var(--dark); padding:2.2rem 1.8rem; transition:background 0.3s; }
+    .offer-card:hover { background:var(--dark-2); }
+    .offer-num { font-family:var(--font-display); font-size:3rem; color:rgba(255,255,255,0.04); line-height:1; margin-bottom:1rem; }
+    .offer-icon { width:20px; height:20px; stroke:rgba(255,255,255,0.25); fill:none; stroke-width:1.5; margin-bottom:1rem; display:block; }
+    .offer-card h3 { font-family:var(--font-condensed); font-size:1rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:rgba(255,255,255,0.8); margin-bottom:0.55rem; }
+    .offer-card p { font-size:0.83rem; line-height:1.72; color:rgba(255,255,255,0.3); }
+
+    /* ABOUT */
+    #about { background:var(--off-white); padding:9rem 3rem; }
+    .about-layout { display:grid; grid-template-columns:1fr 1fr; gap:8rem; align-items:center; }
+    .about-text p { color:var(--ink-light); font-size:0.92rem; line-height:1.82; margin-bottom:1rem; max-width:440px; }
+    .about-list { list-style:none; margin-top:2.2rem; border-top:1px solid rgba(0,0,0,0.08); }
+    .about-list li { font-family:var(--font-condensed); font-size:0.86rem; letter-spacing:0.06em; color:var(--ink-light); padding:0.85rem 0; border-bottom:1px solid rgba(0,0,0,0.07); display:flex; align-items:center; justify-content:space-between; }
+    .about-list li::after { content:'→'; color:rgba(0,0,0,0.2); font-size:0.75rem; }
+    .about-frame { aspect-ratio:3/4; background:var(--white-section); overflow:hidden; }
+    .about-frame-inner { width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:linear-gradient(160deg,#e6e2dc,#d4d0ca); }
+    .about-car-wrap { width:86%; opacity:0.65; }
+    .about-stats { display:grid; grid-template-columns:repeat(3,1fr); border-top:2px solid var(--ink); }
+    .stat-cell { padding:1.3rem 1rem; border-right:1px solid rgba(0,0,0,0.09); text-align:center; }
+    .stat-cell:last-child { border-right:none; }
+    .stat-num { font-family:var(--font-display); font-size:2.1rem; color:var(--ink); letter-spacing:0.06em; display:block; }
+    .stat-label { font-family:var(--font-condensed); font-size:0.63rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--ink-muted); }
+
+    /* QUOTE */
+    .quote-section { background:var(--black); padding:6rem 3rem; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; }
+    .quote-bg-word { position:absolute; font-family:var(--font-display); font-size:clamp(6rem,14vw,13rem); color:rgba(255,255,255,0.022); letter-spacing:0.1em; user-select:none; white-space:nowrap; pointer-events:none; }
+    .quote-inner { position:relative; text-align:center; max-width:680px; }
+    .q-mark { font-family:var(--font-display); font-size:4.5rem; color:rgba(255,255,255,0.08); line-height:0.6; display:block; margin-bottom:0.7rem; }
+    .q-text { font-family:var(--font-condensed); font-size:clamp(1.3rem,2.8vw,2rem); font-weight:300; letter-spacing:0.08em; line-height:1.55; color:rgba(255,255,255,0.7); }
+    .q-attr { margin-top:2rem; font-family:var(--font-condensed); font-size:0.68rem; letter-spacing:0.28em; text-transform:uppercase; color:rgba(255,255,255,0.2); }
+
+    /* ROUTE */
+    #route { background:var(--off-white); padding:9rem 3rem 7rem; }
+    .route-header { display:grid; grid-template-columns:1fr 1fr; gap:5rem; align-items:end; margin-bottom:4rem; }
+    .route-header p { font-size:0.92rem; line-height:1.82; color:var(--ink-light); max-width:420px; }
+    .map-wrapper { background:var(--ink); overflow:hidden; }
+    .map-canvas { width:100%; height:520px; }
+    .map-canvas svg { width:100%; height:100%; }
+    .map-bg-rect { fill:#141414; }
+    .map-grid line { stroke:rgba(255,255,255,0.033); }
+    .road-base { stroke:#232323; stroke-width:8; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+    .road-highlight { stroke:#777; stroke-width:3.5; fill:none; stroke-linecap:round; stroke-linejoin:round; cursor:pointer; stroke-opacity:0.55; stroke-dasharray:600; stroke-dashoffset:600; animation:drawRoad 2s ease forwards; transition:stroke 0.25s,stroke-width 0.2s,stroke-opacity 0.25s; }
+    .road-highlight.seg-2{animation-delay:0.35s;stroke-dasharray:400;stroke-dashoffset:400;}
+    .road-highlight.seg-3{animation-delay:0.7s;stroke-dasharray:500;stroke-dashoffset:500;}
+    .road-highlight.seg-4{animation-delay:1.05s;stroke-dasharray:300;stroke-dashoffset:300;}
+    @keyframes drawRoad{to{stroke-dashoffset:0;}}
+    .road-highlight:hover { stroke:#bbb; stroke-width:5; stroke-opacity:1; }
+    .road-highlight.active { stroke:var(--rosso); stroke-width:5; stroke-opacity:1; }
+    .map-dot { fill:#4a4a4a; cursor:pointer; transition:fill 0.2s; r:6; }
+    .map-dot:hover { fill:#aaa; }
+    .map-dot.active { fill:var(--rosso); }
+    .map-dot-ring { fill:none; stroke:#3a3a3a; stroke-width:1; opacity:0.5; animation:dotPulse 2.5s ease-in-out infinite; }
+    @keyframes dotPulse{0%,100%{r:11;opacity:0.4;}50%{r:17;opacity:0;}}
+    .map-label { font-family:'Barlow Condensed',sans-serif; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; fill:#4a4a4a; pointer-events:none; }
+    .map-instruction { padding:0.8rem 1.5rem; border-top:1px solid rgba(255,255,255,0.04); display:flex; align-items:center; gap:0.7rem; background:#101010; }
+    .map-instruction span { font-family:var(--font-condensed); font-size:0.66rem; letter-spacing:0.18em; text-transform:uppercase; color:#3a3a3a; }
+    .video-panel { background:var(--white-section); border:1px solid rgba(0,0,0,0.09); border-top:none; padding:2rem 2.5rem; display:none; animation:panelReveal 0.3s ease; }
+    .video-panel.visible { display:flex; gap:2.2rem; align-items:flex-start; }
+    @keyframes panelReveal{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);}}
+    .video-thumb { width:260px; flex-shrink:0; aspect-ratio:16/9; background:var(--dark-3); overflow:hidden; cursor:pointer; }
+    .video-thumb-bg { width:100%; height:100%; background:linear-gradient(135deg,#181818,#222); display:flex; align-items:center; justify-content:center; }
+    .play-btn { width:46px; height:46px; border:1px solid rgba(255,255,255,0.18); border-radius:50%; display:flex; align-items:center; justify-content:center; transition:border-color 0.2s,background 0.2s; }
+    .video-thumb:hover .play-btn { border-color:rgba(255,255,255,0.5); background:rgba(255,255,255,0.06); }
+    .play-btn svg { width:15px; height:15px; fill:var(--white); margin-left:3px; }
+    .video-info h4 { font-family:var(--font-condensed); font-size:1.2rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink); margin-bottom:0.4rem; }
+    .seg-tag { font-family:var(--font-condensed); font-size:0.64rem; letter-spacing:0.25em; text-transform:uppercase; color:var(--ink-muted); margin-bottom:0.7rem; display:block; }
+    .video-info p { font-size:0.86rem; line-height:1.76; color:var(--ink-light); }
+    .map-legend { display:flex; gap:2.5rem; margin-top:1.8rem; padding-top:1.5rem; border-top:1px solid rgba(0,0,0,0.08); flex-wrap:wrap; }
+    .legend-item { display:flex; align-items:center; gap:0.55rem; font-family:var(--font-condensed); font-size:0.66rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--ink-muted); }
+    .leg-dot { width:7px; height:7px; border-radius:50%; background:var(--rosso); }
+    .leg-line { width:22px; height:2px; background:#999; }
+
+    /* SIGNUP */
+    #signup { background:var(--dark); padding:8rem 3rem; position:relative; overflow:hidden; }
+    #signup::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse 55% 70% at 50% 110%,rgba(184,39,45,0.05) 0%,transparent 70%); pointer-events:none; }
+    .signup-inner { max-width:520px; margin:0 auto; text-align:center; position:relative; }
+    .signup-inner .section-label-dark { justify-content:center; }
+    .signup-inner .section-label-dark::before { display:none; }
+    .signup-form { display:flex; max-width:420px; margin:2.5rem auto 1.2rem; }
+    .signup-form input { flex:1; background:rgba(255,255,255,0.035); border:1px solid rgba(255,255,255,0.09); border-right:none; color:var(--white); font-family:var(--font-condensed); font-size:0.88rem; letter-spacing:0.07em; padding:0.95rem 1.3rem; outline:none; transition:border-color 0.2s; }
+    .signup-form input::placeholder { color:rgba(255,255,255,0.18); }
+    .signup-form input:focus { border-color:rgba(255,255,255,0.28); }
+    .signup-form button { background:var(--rosso); color:var(--white); border:none; font-family:var(--font-condensed); font-size:0.7rem; font-weight:700; letter-spacing:0.22em; text-transform:uppercase; padding:0.95rem 1.5rem; cursor:pointer; transition:opacity 0.2s; white-space:nowrap; }
+    .signup-form button:hover { opacity:0.82; }
+    .signup-note { font-family:var(--font-condensed); font-size:0.66rem; letter-spacing:0.12em; color:rgba(255,255,255,0.18); }
+
+    /* FOOTER */
+    footer { background:var(--black); border-top:1px solid rgba(255,255,255,0.04); padding:3rem; display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:2rem; }
+    .footer-logo { font-family:var(--font-display); font-size:1.45rem; letter-spacing:0.12em; color:rgba(255,255,255,0.5); text-decoration:none; }
+    .footer-logo span { color:var(--rosso); }
+    .footer-links { display:flex; gap:2rem; list-style:none; justify-content:center; }
+    .footer-links a { font-family:var(--font-condensed); font-size:0.68rem; letter-spacing:0.2em; text-transform:uppercase; color:rgba(255,255,255,0.18); text-decoration:none; transition:color 0.2s; }
+    .footer-links a:hover { color:rgba(255,255,255,0.55); }
+    .footer-right { text-align:right; }
+    .footer-socials { display:flex; gap:1rem; justify-content:flex-end; margin-bottom:0.75rem; }
+    .footer-socials a { color:rgba(255,255,255,0.18); transition:color 0.2s; display:flex; }
+    .footer-socials a:hover { color:rgba(255,255,255,0.55); }
+    .footer-socials svg { width:15px; height:15px; fill:currentColor; }
+    /* SUB-FOOTER */
+    .sub-footer { background:var(--black); border-top:1px solid rgba(255,255,255,0.04); padding:0.9rem 3rem; display:grid; grid-template-columns:1fr auto 1fr; align-items:center; }
+    .sub-footer-built { display:inline-flex; align-items:center; gap:0.55rem; text-decoration:none; transition:opacity 0.2s; }
+    .sub-footer-built:hover { opacity:0.65; }
+    .sub-footer-built img { width:22px; height:22px; border-radius:50%; object-fit:cover; opacity:0.55; }
+    .sub-footer-built span { font-family:var(--font-condensed); font-size:0.62rem; letter-spacing:0.16em; text-transform:uppercase; color:rgba(255,255,255,0.22); }
+    @media(max-width:900px){ .sub-footer{ grid-template-columns:1fr; justify-items:center; padding:0.9rem 1.5rem; } }
+
+    /* ── HAMBURGER BUTTON ── */
+    .burger {
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      gap: 5px;
+      width: 36px;
+      height: 36px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      z-index: 1100;
+    }
+    .burger span {
+      display: block;
+      height: 1.5px;
+      background: rgba(255,255,255,0.7);
+      border-radius: 2px;
+      transition: transform 0.35s ease, opacity 0.25s ease, width 0.3s ease;
+      transform-origin: center;
+    }
+    .burger span:nth-child(1) { width: 24px; }
+    .burger span:nth-child(2) { width: 18px; }
+    .burger span:nth-child(3) { width: 24px; }
+    .burger.open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); width: 24px; }
+    .burger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+    .burger.open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); width: 24px; }
+
+    /* ── MOBILE DRAWER ── */
+    .mobile-drawer {
+      position: fixed;
+      inset: 0;
+      background: rgba(8,8,8,0.97);
+      z-index: 1050;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 0;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s ease;
+      backdrop-filter: blur(12px);
+    }
+    .mobile-drawer.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .mobile-drawer ul {
+      list-style: none;
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+    .mobile-drawer ul li {
+      overflow: hidden;
+    }
+    .mobile-drawer ul li a {
+      font-family: var(--font-display);
+      font-size: clamp(2.8rem, 8vw, 5rem);
+      letter-spacing: 0.06em;
+      color: rgba(255,255,255,0.85);
+      text-decoration: none;
+      display: block;
+      padding: 0.15rem 0;
+      transition: color 0.2s;
+      transform: translateY(40px);
+      opacity: 0;
+      transition: transform 0.4s ease, opacity 0.4s ease, color 0.2s;
+    }
+    .mobile-drawer.open ul li a {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    .mobile-drawer.open ul li:nth-child(1) a { transition-delay: 0.08s; }
+    .mobile-drawer.open ul li:nth-child(2) a { transition-delay: 0.14s; }
+    .mobile-drawer.open ul li:nth-child(3) a { transition-delay: 0.20s; }
+    .mobile-drawer.open ul li:nth-child(4) a { transition-delay: 0.26s; }
+    .mobile-drawer ul li a:hover { color: var(--rosso); }
+    .mobile-drawer-socials {
+      display: flex;
+      gap: 1.6rem;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.4s ease 0.34s, transform 0.4s ease 0.34s;
+    }
+    .mobile-drawer.open .mobile-drawer-socials {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .mobile-drawer-socials a {
+      color: rgba(255,255,255,0.25);
+      transition: color 0.2s;
+      display: flex;
+    }
+    .mobile-drawer-socials a:hover { color: rgba(255,255,255,0.7); }
+    .mobile-drawer-socials svg { width: 18px; height: 18px; fill: currentColor; }
+    /* divider line in drawer */
+    .mobile-drawer::before {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(to right, transparent, rgba(255,255,255,0.04), transparent);
+    }
+
+    /* ── CONTOUR CANVAS LAYER ── */
+    .contour-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+    /* dark sections need position:relative to contain the canvas */
+    #offer, .quote-section, #signup { position: relative; overflow: hidden; }
+
+    /* MOBILE */
+    @media(max-width:900px){
+      nav{padding:1.2rem 1.5rem;}
+      .nav-links{display:none;}
+      .nav-socials{display:none;}
+      .burger{display:flex;}
+      .hero-content{padding:0 1.5rem 5rem;}
+      /* Shift hero image right on mobile so the car's rear & exhausts are in frame */
+      .hero-scene { object-position: 72% 40%; }
+      #offer,#about,#route,#signup{padding:5rem 1.5rem;}
+      .offer-layout{grid-template-columns:1fr;gap:3rem;}.offer-sidebar{position:static;}.offer-cards{grid-template-columns:1fr;}
+      .about-layout{grid-template-columns:1fr;gap:3rem;}
+      /* Reduce the SVG car frame height — 3/4 is massive on mobile */
+      .about-frame { aspect-ratio: 16/9; }
+      .route-header{grid-template-columns:1fr;gap:2rem;}
+      /* Route map — shorter canvas, bigger tap targets */
+      .map-canvas { height: 300px; }
+      .map-dot { r: 12; }
+      .video-panel.visible{flex-direction:column;}.video-thumb{width:100%;}
+      footer{grid-template-columns:1fr;text-align:center;}.footer-right,.footer-socials{text-align:center;justify-content:center;}
+      /* Signup form — stack vertically on mobile */
+      .signup-form { flex-direction: column; max-width: 100%; }
+      .signup-form input { border-right: 1px solid rgba(255,255,255,0.09); border-bottom: none; }
+      .signup-form button { width: 100%; padding: 1rem; }
+      /* Hide custom cursor on touch devices */
+      .cursor, .cursor-ring { display: none; }
+      /* Prevent quote background word overflowing */
+      .quote-bg-word { font-size: clamp(3.5rem, 18vw, 6rem); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAV -->
+<nav id="mainNav">
+  <a href="#" class="logo">APEX<span>.</span>DRIVE</a>
+  <ul class="nav-links">
+    <li><a href="#offer">Events</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#route">The Route</a></li>
+    <li><a href="#signup">Register</a></li>
+  </ul>
+  <div class="nav-socials">
+    <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a>
+    <a href="#" aria-label="YouTube"><svg viewBox="0 0 24 24"><path d="M23.499 6.203a3.008 3.008 0 0 0-2.089-2.089c-1.87-.501-9.4-.501-9.4-.501s-7.509-.01-9.399.501A3.008 3.008 0 0 0 .522 6.203C0 8.073 0 12 0 12s0 3.927.522 5.797a3.008 3.008 0 0 0 2.089 2.089c1.9.504 9.4.504 9.4.504s7.509 0 9.399-.504a3.008 3.008 0 0 0 2.089-2.089C24 15.927 24 12 24 12s0-3.927-.501-5.797zM9.609 15.601V8.408l6.264 3.602z"/></svg></a>
+    <a href="#" aria-label="Facebook"><svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+  </div>
+  <!-- Hamburger — visible on mobile only -->
+  <button class="burger" id="burgerBtn" aria-label="Open menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- MOBILE FULL-SCREEN DRAWER -->
+<div class="mobile-drawer" id="mobileDrawer">
+  <ul>
+    <li><a href="#offer" class="drawer-link">Events</a></li>
+    <li><a href="#about" class="drawer-link">About</a></li>
+    <li><a href="#route" class="drawer-link">The Route</a></li>
+    <li><a href="#signup" class="drawer-link">Register</a></li>
+  </ul>
+  <div class="mobile-drawer-socials">
+    <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a>
+    <a href="#" aria-label="YouTube"><svg viewBox="0 0 24 24"><path d="M23.499 6.203a3.008 3.008 0 0 0-2.089-2.089c-1.87-.501-9.4-.501-9.4-.501s-7.509-.01-9.399.501A3.008 3.008 0 0 0 .522 6.203C0 8.073 0 12 0 12s0 3.927.522 5.797a3.008 3.008 0 0 0 2.089 2.089c1.9.504 9.4.504 9.4.504s7.509 0 9.399-.504a3.008 3.008 0 0 0 2.089-2.089C24 15.927 24 12 24 12s0-3.927-.501-5.797zM9.609 15.601V8.408l6.264 3.602z"/></svg></a>
+    <a href="#" aria-label="Facebook"><svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+  </div>
+</div>
+
+<!-- ═══════════ HERO ═══════════ -->
+<section class="hero" id="home">
+
+  <!-- HERO PHOTO — swap filename or add transformations as needed -->
+  <img
+    src="https://res.cloudinary.com/diopdbroz/image/upload/w_1440,h_900,c_fill,g_auto,q_auto,f_auto/v1774573450/drive_fzcmtn.jpg"
+    srcset="
+      https://res.cloudinary.com/diopdbroz/image/upload/w_768,h_600,c_fill,g_auto,q_auto,f_auto/v1774573450/drive_fzcmtn.jpg 768w,
+      https://res.cloudinary.com/diopdbroz/image/upload/w_1200,h_800,c_fill,g_auto,q_auto,f_auto/v1774573450/drive_fzcmtn.jpg 1200w,
+      https://res.cloudinary.com/diopdbroz/image/upload/w_1920,h_1080,c_fill,g_auto,q_auto,f_auto/v1774573450/drive_fzcmtn.jpg 1920w
+    "
+    sizes="100vw"
+    class="hero-scene"
+    alt="Car on an open road"
+  />
+
+  <!-- Gradient overlay -->
+  <div class="hero-overlay"></div>
+
+
+  <!-- ── EXHAUST SMOKE — left pair ── -->
+  <div class="exhaust-wrap" style="left:76%;bottom:16%;">
+    <div class="smoke-puff"></div>
+    <div class="smoke-puff"></div>
+    <div class="smoke-puff"></div>
+    <div class="smoke-puff"></div>
+    <div class="smoke-puff"></div>
+    <div class="smoke-puff"></div>
+    <div class="smoke-puff"></div>
+    <div class="smoke-puff"></div>
+  </div>
+  <!-- ── EXHAUST SMOKE — right pair ── -->
+  <div class="exhaust-wrap exhaust-right" style="left:78%;bottom:16%;">
+    <div class="smoke-puff"></div>
+    <div class="smoke-puff"></div>
+    <div class="smoke-puff"></div>
+    <div class="smoke-puff"></div>
+    <div class="smoke-puff"></div>
+    <div class="smoke-puff"></div>
+    <div class="smoke-puff"></div>
+    <div class="smoke-puff"></div>
+  </div>
+  <!-- HERO TEXT -->
+  <div class="hero-content">
+    <div class="hero-eyebrow">Curated Driving Experiences</div>
+    <h1 class="hero-title">DRIVE<br>THE<br><em>LEGEND</em></h1>
+    <p class="hero-sub">Handpicked routes. Elite machines. Moments that define the road. Join the most exclusive driving events in the UK.</p>
+    <a href="#offer" class="hero-cta">
+      Explore Events
+      <svg viewBox="0 0 24 24"><path d="M13.025 1l-2.847 2.828 6.176 6.176h-16.354v3.992h16.354l-6.176 6.176 2.847 2.828 10.975-11z"/></svg>
+    </a>
+  </div>
+
+  <div class="hero-scroll"><div class="scroll-line"></div><span>Scroll</span></div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-strip">
+  <div class="marquee-track">
+    <span>Drive</span><span class="sep">◆</span><span>Apex</span><span class="sep">◆</span><span>Highland</span><span class="sep">◆</span><span>Circuit</span><span class="sep">◆</span><span>Throttle</span><span class="sep">◆</span><span>Legend</span><span class="sep">◆</span>
+    <span>Drive</span><span class="sep">◆</span><span>Apex</span><span class="sep">◆</span><span>Highland</span><span class="sep">◆</span><span>Circuit</span><span class="sep">◆</span><span>Throttle</span><span class="sep">◆</span><span>Legend</span><span class="sep">◆</span>
+    <span>Drive</span><span class="sep">◆</span><span>Apex</span><span class="sep">◆</span><span>Highland</span><span class="sep">◆</span><span>Circuit</span><span class="sep">◆</span><span>Throttle</span><span class="sep">◆</span><span>Legend</span><span class="sep">◆</span>
+  </div>
+</div>
+
+<!-- OFFER -->
+<section id="offer">
+  <div class="offer-layout">
+    <div class="offer-sidebar reveal">
+      <div class="section-label-dark">What We Offer</div>
+      <h2 class="h-dark">BUILT<br>FOR<br>DRIVERS</h2>
+      <p>Every Apex Drive event is crafted for those who feel most alive behind the wheel. We don't do ordinary — every detail, every mile, every moment is considered.</p>
+    </div>
+    <div class="offer-cards">
+      <div class="offer-card reveal"><div class="offer-num">01</div><svg class="offer-icon" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0"/><path d="M12 8v4l3 3"/></svg><h3>Curated Routes</h3><p>Handpicked roads through the most breathtaking landscapes in the UK and Europe. Every corner chosen for maximum engagement.</p></div>
+      <div class="offer-card reveal rd1"><div class="offer-num">02</div><svg class="offer-icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><h3>Exclusive Convoy</h3><p>Limited places in a carefully selected convoy. An intimate premium experience — never more than 20 cars per event.</p></div>
+      <div class="offer-card reveal rd2"><div class="offer-num">03</div><svg class="offer-icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><h3>Full Support</h3><p>Dedicated support vehicles and mechanics on call so you can focus entirely on the drive.</p></div>
+      <div class="offer-card reveal"><div class="offer-num">04</div><svg class="offer-icon" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><h3>Luxury Stays</h3><p>Carefully chosen hotels and restaurants along the way. The journey between stages is as good as the drive itself.</p></div>
+      <div class="offer-card reveal rd1"><div class="offer-num">05</div><svg class="offer-icon" viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg><h3>Pro Coverage</h3><p>Drone footage, photography, and cinematic video of your drive, documented to the highest standard.</p></div>
+      <div class="offer-card reveal rd2"><div class="offer-num">06</div><svg class="offer-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg><h3>The Community</h3><p>Join a growing community of enthusiasts. Member events, forums, and exclusive nights throughout the year.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="about-layout">
+    <div class="reveal">
+      <div class="about-frame">
+        <div class="about-frame-inner">
+          <div class="about-car-wrap">
+            <svg viewBox="0 0 580 220" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="bG2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#aaa"/><stop offset="100%" stop-color="#666"/></linearGradient>
+                <linearGradient id="gG2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#c8d8e8" stop-opacity="0.8"/><stop offset="100%" stop-color="#8090a0" stop-opacity="0.5"/></linearGradient>
+              </defs>
+              <ellipse cx="280" cy="205" rx="240" ry="9" fill="rgba(0,0,0,0.12)"/>
+              <rect x="60" y="140" width="440" height="50" rx="6" fill="url(#bG2)"/>
+              <rect x="75" y="178" width="408" height="10" rx="3" fill="#777"/>
+              <rect x="60" y="166" width="440" height="1.5" fill="rgba(184,39,45,0.55)"/>
+              <path d="M140,140 Q155,95 200,80 L370,80 Q415,80 430,95 L460,140 Z" fill="url(#bG2)"/>
+              <path d="M170,140 Q180,100 205,88 L355,88 Q380,100 395,140 Z" fill="#999"/>
+              <path d="M205,90 Q215,108 220,135 L360,135 Q368,108 375,90 Z" fill="url(#gG2)" opacity="0.85"/>
+              <path d="M375,90 L395,140 L420,140 L405,95 Z" fill="url(#gG2)" opacity="0.55"/>
+              <path d="M170,140 L155,96 L205,90 L220,135 Z" fill="url(#gG2)" opacity="0.55"/>
+              <path d="M60,140 L140,140 Q135,125 100,118 L60,120 Z" fill="#888"/>
+              <rect x="452" y="128" width="20" height="12" rx="2" fill="rgba(184,39,45,0.35)"/>
+              <rect x="440" y="183" width="28" height="6" rx="3" fill="#777"/>
+              <g transform="translate(155,188)"><circle r="32" fill="#555"/><circle r="28" fill="#777"/><circle r="22" fill="#666"/><g stroke="#999" stroke-width="3" stroke-linecap="round"><line x1="0" y1="-18" x2="0" y2="18"/><line x1="-18" y1="0" x2="18" y2="0"/><line x1="-12.7" y1="-12.7" x2="12.7" y2="12.7"/><line x1="12.7" y1="-12.7" x2="-12.7" y2="12.7"/></g><circle r="5" fill="#555"/></g>
+              <g transform="translate(385,188)"><circle r="32" fill="#555"/><circle r="28" fill="#777"/><circle r="22" fill="#666"/><g stroke="#999" stroke-width="3" stroke-linecap="round"><line x1="0" y1="-18" x2="0" y2="18"/><line x1="-18" y1="0" x2="18" y2="0"/><line x1="-12.7" y1="-12.7" x2="12.7" y2="12.7"/><line x1="12.7" y1="-12.7" x2="-12.7" y2="12.7"/></g><circle r="5" fill="#555"/></g>
+              <rect x="435" y="80" width="35" height="4" rx="2" fill="#999"/>
+              <rect x="462" y="80" width="4" height="14" rx="1" fill="#888"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div class="about-stats">
+        <div class="stat-cell"><span class="stat-num">12+</span><span class="stat-label">Annual Events</span></div>
+        <div class="stat-cell"><span class="stat-num">3K</span><span class="stat-label">Miles Driven</span></div>
+        <div class="stat-cell"><span class="stat-num">500+</span><span class="stat-label">Members</span></div>
+      </div>
+    </div>
+    <div class="about-text reveal rd2">
+      <div class="section-label-light">About Us</div>
+      <h2 class="h-light">BORN FROM<br>A PASSION<br>TO DRIVE</h2>
+      <p>Apex Drive was founded by a group of passionate drivers who believed that the greatest roads in the world deserve to be driven properly — in the right cars, with the right people, at the right pace.</p>
+      <p>We meticulously plan every route, every stop, and every detail to ensure that from the first ignition to the final handshake, the experience is one you'll talk about for years.</p>
+      <ul class="about-list">
+        <li>Founded in 2018 by drivers, for drivers</li>
+        <li>Events across the UK and continental Europe</li>
+        <li>Maximum 20 cars per event — always exclusive</li>
+        <li>Full insurance and breakdown coverage included</li>
+        <li>All experience levels welcome</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- QUOTE -->
+<div class="quote-section">
+  <div class="quote-bg-word">THE&nbsp;&nbsp;ROAD</div>
+  <div class="quote-inner reveal">
+    <span class="q-mark">"</span>
+    <p class="q-text">The road doesn't care about your job title, your inbox, or your schedule. It only asks one thing — that you show up and drive.</p>
+    <p class="q-attr">— Apex Drive, est. 2018</p>
+  </div>
+</div>
+
+<!-- ROUTE -->
+<section id="route">
+  <div class="route-header">
+    <div class="reveal">
+      <div class="section-label-light">The Route</div>
+      <h2 class="h-light">FOLLOW<br>THE LINE</h2>
+    </div>
+    <div class="reveal rd2">
+      <p>Five of Wales' most breathtaking driving roads, mapped and ready to explore. Click any highlighted route below to learn more and watch footage from that section.</p>
+    </div>
+  </div>
+  <div class="reveal" id="mapSection">
+    <div class="map-wrapper" style="padding:0;background:none;">
+      <iframe
+        src="map.html"
+        style="width:100%;height:560px;border:none;display:block;"
+        title="Apex Drive — Wales Route Map"
+        loading="lazy"
+      ></iframe>
+    </div>
+  </div>
+</section>
+
+<!-- SIGNUP -->
+<section id="signup">
+  <div class="signup-inner">
+    <div class="reveal">
+      <div class="section-label-dark">Stay in the Loop</div>
+      <h2 class="h-dark" style="margin-bottom:0.9rem;">REGISTER<br>YOUR INTEREST</h2>
+      <p style="font-family:var(--font-condensed);font-size:0.9rem;letter-spacing:0.05em;color:rgba(255,255,255,0.3);line-height:1.7;max-width:380px;margin:0 auto;">Be the first to know when new events are announced. Places are strictly limited — early registration is essential.</p>
+    </div>
+    <div class="reveal rd1">
+      <form class="signup-form" onsubmit="handleSignup(event)">
+        <input type="email" id="emailInput" placeholder="Your email address" required autocomplete="email"/>
+        <button type="submit">Register</button>
+      </form>
+      <p class="signup-note" id="signupMsg">No spam. Unsubscribe at any time.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <a href="#" class="footer-logo">APEX<span>.</span>DRIVE</a>
+  <ul class="footer-links">
+    <li><a href="#offer">Events</a></li><li><a href="#about">About</a></li>
+    <li><a href="#route">Route</a></li><li><a href="#signup">Register</a></li>
+  </ul>
+  <div class="footer-right">
+    <div class="footer-socials">
+      <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a>
+      <a href="#" aria-label="YouTube"><svg viewBox="0 0 24 24"><path d="M23.499 6.203a3.008 3.008 0 0 0-2.089-2.089c-1.87-.501-9.4-.501-9.4-.501s-7.509-.01-9.399.501A3.008 3.008 0 0 0 .522 6.203C0 8.073 0 12 0 12s0 3.927.522 5.797a3.008 3.008 0 0 0 2.089 2.089c1.9.504 9.4.504 9.4.504s7.509 0 9.399-.504a3.008 3.008 0 0 0 2.089-2.089C24 15.927 24 12 24 12s0-3.927-.501-5.797zM9.609 15.601V8.408l6.264 3.602z"/></svg></a>
+      <a href="#" aria-label="Facebook"><svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+    </div>
+  </div>
+</footer>
+
+<!-- SUB-FOOTER -->
+<div class="sub-footer">
+  <div></div>
+  <a href="https://descent.digital/" class="sub-footer-built" target="_blank" rel="noopener">
+    <img src="https://res.cloudinary.com/diopdbroz/image/upload/w_44,h_44,c_fill,q_auto,f_auto/v1774660187/dd-ig_jlfrsb.jpg" alt="Descent Digital" />
+    <span>Built by Descent.digital</span>
+  </a>
+  <div></div>
+</div>
+
+<script>
+  // ── CURSOR ──
+  const cursor=document.getElementById('cursor'),ring=document.getElementById('cursorRing');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;});
+  (function loop(){
+    cursor.style.left=mx+'px';cursor.style.top=my+'px';
+    rx+=(mx-rx)*0.12;ry+=(my-ry)*0.12;
+    ring.style.left=rx+'px';ring.style.top=ry+'px';
+    requestAnimationFrame(loop);
+  })();
+  document.querySelectorAll('a,button,.road-highlight,.map-dot').forEach(el=>{
+    el.addEventListener('mouseenter',()=>ring.style.transform='translate(-50%,-50%) scale(1.7)');
+    el.addEventListener('mouseleave',()=>ring.style.transform='translate(-50%,-50%) scale(1)');
+  });
+
+  // ── NAV SCROLL ──
+  const nav=document.getElementById('mainNav');
+  window.addEventListener('scroll',()=>nav.classList.toggle('scrolled',window.scrollY>60));
+
+  // ── HAMBURGER ──
+  const burger=document.getElementById('burgerBtn');
+  const drawer=document.getElementById('mobileDrawer');
+  function closeMenu(){burger.classList.remove('open');drawer.classList.remove('open');document.body.style.overflow='';}
+  burger.addEventListener('click',()=>{ drawer.classList.contains('open')?closeMenu():(burger.classList.add('open'),drawer.classList.add('open'),document.body.style.overflow='hidden'); });
+  document.querySelectorAll('.drawer-link').forEach(l=>l.addEventListener('click',closeMenu));
+  document.addEventListener('keydown',e=>e.key==='Escape'&&closeMenu());
+
+  // ── REVEAL ──
+  const obs=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in-view');}),{threshold:0.1});
+  document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+
+  // ═══════════════════════════════════════════════════════════
+  //  CONTOUR MAP SYSTEM — canvas-based, scroll + mouse driven
+  // ═══════════════════════════════════════════════════════════
+
+  // Global mouse tracking (normalised -0.5 to 0.5)
+  let mouseNX = 0, mouseNY = 0;
+  document.addEventListener('mousemove', e => {
+    mouseNX = (e.clientX / window.innerWidth)  - 0.5;
+    mouseNY = (e.clientY / window.innerHeight) - 0.5;
+  });
+  window.addEventListener('deviceorientation', e => {
+    if (e.gamma == null) return;
+    mouseNX = Math.max(-0.5, Math.min(0.5, e.gamma / 30));
+    mouseNY = Math.max(-0.5, Math.min(0.5, (e.beta - 45) / 40));
+  });
+
+  // Smoothed values for mouse and scroll
+  let smoothMouseX = 0, smoothMouseY = 0;
+  let scrollY = 0, smoothScrollY = 0;
+
+  // ─── Terrain generation ───────────────────────────────────
+  // Each "terrain" is a seeded set of hills that we sample at
+  // various elevations to produce organic closed contour rings.
+
+  // Simple seeded noise using sum of sine waves — gives smooth,
+  // geographically plausible undulations without a noise library.
+  function terrainHeight(x, y, seed) {
+    const s = seed;
+    // Layered sine waves at different frequencies and angles
+    return (
+      Math.sin(x * 0.0031 * (1 + s*0.1) + y * 0.0018 + s) * 120 +
+      Math.sin(x * 0.0071 + y * 0.0055 * (1 + s*0.08) + s*2.1) * 65 +
+      Math.sin(x * 0.0140 * (1 + s*0.05) + y * 0.0110 + s*3.7) * 35 +
+      Math.sin(x * 0.0230 + y * 0.0195 + s*5.3) * 18 +
+      Math.sin(x * 0.0410 + y * 0.0340 + s*7.1) * 9 +
+      Math.sin(x * 0.0080 - y * 0.0060 + s*1.5) * 50 +
+      Math.cos(x * 0.0050 + y * 0.0090 * (1 + s*0.12) + s*4.2) * 45
+    );
+  }
+
+  // March along x finding sign changes to trace a contour line
+  // at a given elevation level, returns array of polyline segments
+  function traceContours(width, height, elevation, seed, resolution=6) {
+    const cols = Math.ceil(width  / resolution) + 1;
+    const rows = Math.ceil(height / resolution) + 1;
+
+    // Sample the terrain grid
+    const grid = [];
+    for (let r = 0; r < rows; r++) {
+      grid[r] = [];
+      for (let c = 0; c < cols; c++) {
+        grid[r][c] = terrainHeight(c * resolution, r * resolution, seed) - elevation;
+      }
+    }
+
+    // Marching squares — collect line segments
+    const segments = [];
+    for (let r = 0; r < rows - 1; r++) {
+      for (let c = 0; c < cols - 1; c++) {
+        const tl = grid[r][c], tr = grid[r][c+1];
+        const bl = grid[r+1][c], br = grid[r+1][c+1];
+        const x0 = c * resolution, y0 = r * resolution;
+        const x1 = x0 + resolution, y1 = y0 + resolution;
+
+        // Interpolate crossing point on an edge
+        function interp(a, b, va, vb) {
+          if (Math.abs(vb - va) < 0.001) return (a + b) / 2;
+          return a + (b - a) * (-va / (vb - va));
+        }
+
+        const idx = (tl<0?0:8)|(tr<0?0:4)|(br<0?0:2)|(bl<0?0:1);
+        // All corners same sign — no crossing
+        if (idx === 0 || idx === 15) continue;
+
+        // Edge midpoints (only computed if needed)
+        const mTop    = () => [interp(x0, x1, tl, tr), y0];
+        const mRight  = () => [x1, interp(y0, y1, tr, br)];
+        const mBottom = () => [interp(x0, x1, bl, br), y1];
+        const mLeft   = () => [x0, interp(y0, y1, tl, bl)];
+
+        // Lookup table: pairs of points forming line segments
+        const lookup = {
+          1:[mLeft,mBottom],2:[mBottom,mRight],3:[mLeft,mRight],
+          4:[mTop,mRight],5:[mLeft,mTop,mBottom,mRight],// saddle — split
+          6:[mTop,mBottom],7:[mLeft,mTop],8:[mTop,mLeft],
+          9:[mTop,mBottom],10:[mBottom,mLeft,mTop,mRight],
+          11:[mTop,mRight],12:[mLeft,mRight],13:[mBottom,mRight],
+          14:[mLeft,mBottom]
+        };
+        const pts = lookup[idx];
+        if (!pts) continue;
+        if (pts.length === 4) {
+          segments.push([pts[0](), pts[1]()]);
+          segments.push([pts[2](), pts[3]()]);
+        } else {
+          segments.push([pts[0](), pts[1]()]);
+        }
+      }
+    }
+    return segments;
+  }
+
+  // Chain segments into polylines for smoother rendering
+  function chainSegments(segments) {
+    if (!segments.length) return [];
+    const SNAP = 4; // distance threshold for joining
+    const used = new Uint8Array(segments.length);
+    const chains = [];
+
+    for (let i = 0; i < segments.length; i++) {
+      if (used[i]) continue;
+      used[i] = 1;
+      let chain = [...segments[i]]; // [p0, p1]
+
+      let growing = true;
+      while (growing) {
+        growing = false;
+        const head = chain[0], tail = chain[chain.length - 1];
+        for (let j = 0; j < segments.length; j++) {
+          if (used[j]) continue;
+          const [a, b] = segments[j];
+          const dTA = (tail[0]-a[0])**2+(tail[1]-a[1])**2;
+          const dTB = (tail[0]-b[0])**2+(tail[1]-b[1])**2;
+          const dHA = (head[0]-a[0])**2+(head[1]-a[1])**2;
+          const dHB = (head[0]-b[0])**2+(head[1]-b[1])**2;
+          if (dTA < SNAP*SNAP) { used[j]=1; chain.push(b); growing=true; }
+          else if (dTB < SNAP*SNAP) { used[j]=1; chain.push(a); growing=true; }
+          else if (dHA < SNAP*SNAP) { used[j]=1; chain.unshift(b); growing=true; }
+          else if (dHB < SNAP*SNAP) { used[j]=1; chain.unshift(a); growing=true; }
+        }
+      }
+      if (chain.length > 2) chains.push(chain);
+    }
+    return chains;
+  }
+
+  // ─── Canvas contour renderer ──────────────────────────────
+  class ContourMap {
+    constructor(canvas, options = {}) {
+      this.canvas = canvas;
+      this.ctx = canvas.getContext('2d');
+      this.seed = options.seed || 1;
+      this.strokeOpacity = options.opacity || 0.055;
+      this.strokeColor = options.color || '255,255,255';
+      this.scrollFactor = options.scrollFactor || 0.25; // how fast lines drift on scroll
+      this.mouseFactor  = options.mouseFactor  || 28;   // px of mouse parallax
+      this.resolution   = options.resolution   || 7;    // grid resolution (lower = more detail)
+      this.lineSpacing  = options.lineSpacing   || 38;   // vertical gap between contour levels
+
+      this.chains   = []; // pre-computed chains per level
+      this.levels   = []; // elevation values
+
+      this.offsetX  = 0;  // smoothed mouse offset
+      this.offsetY  = 0;
+
+      this.resize();
+      this.precompute();
+    }
+
+    resize() {
+      const dpr = window.devicePixelRatio || 1;
+      const rect = this.canvas.getBoundingClientRect();
+      this.canvas.width  = rect.width  * dpr;
+      this.canvas.height = rect.height * dpr;
+      this.ctx.scale(dpr, dpr);
+      this.w = rect.width;
+      this.h = rect.height;
+    }
+
+    precompute() {
+      this.chains = [];
+      this.levels = [];
+      // Sample terrain to find its range
+      let mn = Infinity, mx = -Infinity;
+      for (let x = 0; x < this.w; x += 40) {
+        for (let y = 0; y < this.h; y += 40) {
+          const v = terrainHeight(x, y, this.seed);
+          if (v < mn) mn = v; if (v > mx) mx = v;
+        }
+      }
+      // Produce contour levels spaced across the terrain range
+      const levels = [];
+      for (let e = mn + this.lineSpacing; e < mx; e += this.lineSpacing) {
+        levels.push(e);
+      }
+      // Also add extra levels above/below so lines scroll in from edges
+      const extra = Math.ceil(this.h / this.lineSpacing) * 2;
+      for (let i = 1; i <= extra; i++) {
+        levels.push(mn + this.lineSpacing * (levels.length + i));
+        levels.unshift(mn - this.lineSpacing * i);
+      }
+
+      // Compute chains for a canvas enlarged for scroll room
+      const PAD = this.h * 2; // vertical padding for scroll
+      levels.forEach(e => {
+        const segs = traceContours(this.w, this.h + PAD * 2, e, this.seed, this.resolution);
+        const chains = chainSegments(segs).map(chain =>
+          chain.map(([x, y]) => [x, y - PAD]) // centre the padded area
+        );
+        if (chains.length) {
+          this.chains.push(chains);
+          this.levels.push(e);
+        }
+      });
+    }
+
+    draw(scrollOffset, mxOff, myOff) {
+      const ctx = this.ctx;
+      ctx.clearRect(0, 0, this.w, this.h);
+
+      // Smooth the offsets
+      this.offsetX += (mxOff - this.offsetX) * 0.055;
+      this.offsetY += (myOff - this.offsetY) * 0.055;
+
+      const ox = this.offsetX;
+      // Each contour level drifts at a slightly different rate — creates depth
+      this.chains.forEach((chains, li) => {
+        // Depth factor: lines further "below" in the terrain drift faster with scroll
+        const depthFactor = 0.7 + (li / this.chains.length) * 0.6;
+        const oy = (scrollOffset * this.scrollFactor * depthFactor + myOff * 0.6)
+                   % (this.lineSpacing);
+
+        // Vary opacity slightly per level for depth
+        const opacity = this.strokeOpacity * (0.6 + 0.4 * (li / this.chains.length));
+        ctx.strokeStyle = `rgba(${this.strokeColor},${opacity.toFixed(3)})`;
+        ctx.lineWidth = 1;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        chains.forEach(chain => {
+          if (chain.length < 2) return;
+          ctx.beginPath();
+          // Apply scroll + mouse offsets
+          const sx = chain[0][0] + ox;
+          const sy = chain[0][1] + oy;
+          ctx.moveTo(sx, sy);
+          for (let i = 1; i < chain.length; i++) {
+            ctx.lineTo(chain[i][0] + ox, chain[i][1] + oy);
+          }
+          ctx.stroke();
+        });
+      });
+    }
+  }
+
+  // ─── Initialise a ContourMap on each dark section ─────────
+  const contourMaps = [];
+
+  function initContours() {
+    const sections = [
+      { el: document.querySelector('.hero'),         seed: 3.7, opacity: 0.038, scrollFactor: 0.22, mouse: 22 },
+      { el: document.getElementById('offer'),        seed: 1.2, opacity: 0.050, scrollFactor: 0.28, mouse: 26 },
+      { el: document.querySelector('.quote-section'),seed: 5.1, opacity: 0.058, scrollFactor: 0.32, mouse: 30 },
+      { el: document.getElementById('signup'),       seed: 2.8, opacity: 0.048, scrollFactor: 0.26, mouse: 24 },
+    ];
+
+    sections.forEach(({ el, seed, opacity, scrollFactor, mouse }) => {
+      if (!el) return;
+      const canvas = document.createElement('canvas');
+      canvas.className = 'contour-canvas';
+      // Hero canvas goes behind hero overlay; others just behind content
+      if (el.classList.contains('hero')) {
+        el.querySelector('.hero-overlay').insertAdjacentElement('beforebegin', canvas);
+      } else {
+        el.insertAdjacentElement('afterbegin', canvas);
+      }
+      const map = new ContourMap(canvas, { seed, opacity, scrollFactor, mouseFactor: mouse, resolution: 7, lineSpacing: 42 });
+      contourMaps.push({ map, el });
+    });
+  }
+
+  // ─── Animation loop ───────────────────────────────────────
+  function contourLoop() {
+    smoothMouseX += (mouseNX - smoothMouseX) * 0.04;
+    smoothMouseY += (mouseNY - smoothMouseY) * 0.04;
+    smoothScrollY += (window.scrollY - smoothScrollY) * 0.08;
+
+    contourMaps.forEach(({ map, el }) => {
+      const rect = el.getBoundingClientRect();
+      // Only draw if section is on screen (perf)
+      if (rect.bottom < 0 || rect.top > window.innerHeight * 1.5) return;
+
+      // Section-local scroll: how far we've scrolled INTO this section
+      const sectionScroll = Math.max(0, smoothScrollY - (el.offsetTop - window.innerHeight));
+
+      const mxOff = smoothMouseX * map.mouseFactor;
+      const myOff = smoothMouseY * map.mouseFactor * 0.5;
+      map.draw(sectionScroll, mxOff, myOff);
+    });
+
+    requestAnimationFrame(contourLoop);
+  }
+
+  // Resize handler
+  function handleResize() {
+    contourMaps.forEach(({ map }) => {
+      map.resize();
+      map.precompute();
+    });
+  }
+
+  // Boot
+  initContours();
+  contourLoop();
+  window.addEventListener('resize', handleResize, { passive: true });
+
+  // ── MAP INTERACTION ──
+  const segData={
+    1:{title:'Start to Glen Affric',tag:'Segment 1 of 4 — ~42 miles',desc:'The opening stage sets the tone perfectly. Long sweeping corners through ancient pine forests give way to dramatic valley views as the road climbs toward Glen Affric — one of the most beautiful glens in the country.'},
+    2:{title:'Glen Affric to the Pass',tag:'Segment 2 of 4 — ~38 miles',desc:'The road narrows and the drama intensifies as you climb toward the summit pass — a series of tight hairpins ascending to over 2,000ft with panoramic views across the landscape. This is the segment that defines the entire route.'},
+    3:{title:'The Pass to the Coast',tag:'Segment 3 of 4 — ~28 miles',desc:'Descending to the west coast, the route hugs the shoreline with extraordinary views opening up across the water. The road is technical, fast in places, and absolutely stunning.'},
+    4:{title:'Coastal Run — Finish',tag:'Segment 4 of 4 — Final Stage',desc:'The closing miles ease the pace as the scenery softens. The magnitude of what you\'ve just driven begins to sink in. A fitting end to an extraordinary day on the road.'}
+  };
+  const vp=document.getElementById('videoPanel');
+  function activateSegment(seg){
+    seg=parseInt(seg);
+    document.querySelectorAll('.road-highlight,.map-dot').forEach(el=>el.classList.remove('active'));
+    document.getElementById('seg'+seg).classList.add('active');
+    const d=document.getElementById('dot'+seg);if(d)d.classList.add('active');
+    if(seg===4){const d5=document.getElementById('dot5');if(d5)d5.classList.add('active');}
+    const sd=segData[seg];
+    document.getElementById('segTag').textContent=sd.tag;
+    document.getElementById('videoTitle').textContent=sd.title;
+    document.getElementById('videoDesc').textContent=sd.desc;
+    vp.classList.add('visible');
+  }
+  document.querySelectorAll('.road-highlight').forEach(el=>el.addEventListener('click',()=>activateSegment(el.dataset.seg)));
+  document.querySelectorAll('.map-dot').forEach(el=>el.addEventListener('click',()=>activateSegment(el.dataset.seg)));
+
+  // ── SIGNUP ──
+  function handleSignup(e){
+    e.preventDefault();
+    const msg=document.getElementById('signupMsg');
+    msg.textContent='✓ You\'re on the list. We\'ll be in touch soon.';
+    msg.style.color='var(--rosso)';
+    document.getElementById('emailInput').value='';
+  }
+</script>
+</body>
+</html>

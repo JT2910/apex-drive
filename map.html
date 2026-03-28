@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Apex Drive — Wales Route Map</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;600;700&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    :root {
+      --rosso: #B8272D;
+      --black: #0a0a0a;
+      --dark: #111111;
+      --dark-2: #181818;
+      --white: #F0EDE8;
+      --font-display: 'Bebas Neue', sans-serif;
+      --font-condensed: 'Barlow Condensed', sans-serif;
+      --font-body: 'Barlow', sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; background: var(--dark); font-family: var(--font-body); overflow: hidden; }
+
+    #wrap { position: relative; width: 100%; height: 100vh; display: flex; flex-direction: column; }
+    #map { flex: 1; background: #0d0d0d; }
+
+    /* ── LEAFLET OVERRIDES ── */
+    .leaflet-control-zoom {
+      border: 1px solid rgba(255,255,255,0.08) !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+    }
+    .leaflet-control-zoom a {
+      background: rgba(14,14,14,0.96) !important;
+      color: rgba(255,255,255,0.45) !important;
+      border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+      font-family: var(--font-condensed) !important;
+      width: 28px !important;
+      height: 28px !important;
+      line-height: 28px !important;
+      font-size: 1rem !important;
+      transition: color 0.2s, background 0.2s !important;
+    }
+    .leaflet-control-zoom a:last-child { border-bottom: none !important; }
+    .leaflet-control-zoom a:hover { background: rgba(30,30,30,0.98) !important; color: var(--white) !important; }
+    .leaflet-control-attribution {
+      background: rgba(8,8,8,0.7) !important;
+      color: rgba(255,255,255,0.12) !important;
+      font-size: 9px !important;
+    }
+    .leaflet-control-attribution a { color: rgba(255,255,255,0.2) !important; }
+
+    /* ── HINT BAR ── */
+    .map-hint {
+      padding: 0.55rem 1.2rem;
+      background: #101010;
+      border-top: 1px solid rgba(255,255,255,0.04);
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      flex-shrink: 0;
+    }
+    .map-hint span {
+      font-family: var(--font-condensed);
+      font-size: 0.63rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.2);
+    }
+
+    /* ── ROUTE PANEL ── */
+    .route-panel {
+      position: absolute;
+      bottom: 38px; /* above hint bar */
+      left: 0; right: 0;
+      background: rgba(12,12,12,0.97);
+      border-top: 1px solid rgba(255,255,255,0.06);
+      padding: 1.4rem 1.6rem 1.4rem 1.8rem;
+      display: none;
+      gap: 1.8rem;
+      align-items: flex-start;
+      backdrop-filter: blur(10px);
+      z-index: 1000;
+      animation: panelUp 0.28s ease;
+    }
+    .route-panel.visible { display: flex; }
+    @keyframes panelUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .panel-close {
+      position: absolute;
+      top: 0.75rem; right: 1rem;
+      background: none; border: none;
+      color: rgba(255,255,255,0.2);
+      font-size: 1rem; cursor: pointer;
+      transition: color 0.2s;
+      line-height: 1;
+    }
+    .panel-close:hover { color: var(--white); }
+
+    /* Video thumb */
+    .panel-video {
+      width: 210px; flex-shrink: 0;
+      aspect-ratio: 16/9;
+      background: #1a1a1a;
+      border: 1px solid rgba(255,255,255,0.07);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; text-decoration: none;
+      transition: border-color 0.2s;
+      overflow: hidden;
+    }
+    .panel-video:hover:not(.no-video) { border-color: rgba(255,255,255,0.25); }
+    .play-btn {
+      width: 40px; height: 40px;
+      border: 1px solid rgba(255,255,255,0.2); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .panel-video:hover .play-btn { border-color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.06); }
+    .play-btn svg { width: 13px; height: 13px; fill: var(--white); margin-left: 3px; }
+    .no-video-label {
+      font-family: var(--font-condensed);
+      font-size: 0.58rem; letter-spacing: 0.18em;
+      color: rgba(255,255,255,0.18); text-transform: uppercase;
+    }
+
+    /* Panel text */
+    .panel-info { flex: 1; min-width: 0; }
+    .panel-tag {
+      font-family: var(--font-condensed);
+      font-size: 0.6rem; letter-spacing: 0.28em;
+      text-transform: uppercase; color: var(--rosso);
+      display: block; margin-bottom: 0.35rem;
+    }
+    .panel-title {
+      font-family: var(--font-display);
+      font-size: 1.6rem; letter-spacing: 0.05em;
+      color: var(--white); margin-bottom: 0.5rem; line-height: 1;
+    }
+    .panel-desc {
+      font-size: 0.83rem; line-height: 1.72;
+      color: rgba(255,255,255,0.32); max-width: 500px;
+    }
+    .panel-meta {
+      display: flex; gap: 1.6rem; margin-top: 0.85rem; flex-wrap: wrap;
+    }
+    .panel-meta span {
+      font-family: var(--font-condensed);
+      font-size: 0.63rem; letter-spacing: 0.16em;
+      text-transform: uppercase; color: rgba(255,255,255,0.18);
+    }
+    .panel-meta strong { color: rgba(255,255,255,0.5); font-weight: 600; }
+
+    /* ── ROUTE LEGEND ── */
+    .map-legend {
+      position: absolute;
+      top: 1rem; right: 3rem;
+      z-index: 900;
+      display: flex; flex-direction: column; gap: 0.5rem;
+    }
+    .legend-item {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-family: var(--font-condensed);
+      font-size: 0.6rem; letter-spacing: 0.14em;
+      text-transform: uppercase; color: rgba(255,255,255,0.25);
+    }
+    .leg-line { width: 18px; height: 2px; background: #555; border-radius: 2px; }
+    .leg-line.active { background: var(--rosso); }
+
+    @media(max-width: 640px) {
+      .route-panel.visible { flex-direction: column; gap: 1rem; }
+      .panel-video { width: 100%; }
+      .map-legend { display: none; }
+    }
+  </style>
+</head>
+<body>
+<div id="wrap">
+
+  <div id="map"></div>
+
+  <!-- Legend -->
+  <div class="map-legend">
+    <div class="legend-item"><div class="leg-line"></div>Route (clickable)</div>
+    <div class="legend-item"><div class="leg-line active"></div>Selected</div>
+  </div>
+
+  <!-- Hint bar -->
+  <div class="map-hint" id="mapHint">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    <span>Click any highlighted road to explore the route</span>
+  </div>
+
+  <!-- Info panel -->
+  <div class="route-panel" id="routePanel">
+    <button class="panel-close" id="panelClose" aria-label="Close">✕</button>
+    <a class="panel-video" id="panelVideo" target="_blank" rel="noopener noreferrer">
+      <div class="play-btn">
+        <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      </div>
+    </a>
+    <div class="panel-info">
+      <span class="panel-tag" id="panelTag"></span>
+      <h3 class="panel-title" id="panelTitle"></h3>
+      <p class="panel-desc" id="panelDesc"></p>
+      <div class="panel-meta">
+        <span><strong id="panelDist">—</strong>&nbsp;miles</span>
+        <span>Difficulty:&nbsp;<strong id="panelDiff">—</strong></span>
+        <span><strong id="panelRegion">—</strong></span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+//  ROUTE DATA
+//  To add a new route:
+//    1. Draw it on https://geojson.io
+//    2. Copy the coordinates array
+//    3. Add a new object below matching the format
+//  YouTube: paste the full video URL, or leave '' for no video
+// ══════════════════════════════════════════════
+const ROUTES = [
+  {
+    id:         'horseshoe-pass',
+    tag:        'North Wales — Route 1',
+    name:       'Horseshoe Pass',
+    desc:       'The A542 climbs dramatically through the Llantysilio Mountains above Llangollen. Tight hairpins give way to panoramic views across the Vale of Clwyd — one of the finest passes in North Wales.',
+    distance:   '8',
+    difficulty: 'Challenging',
+    region:     'Denbighshire',
+    youtube:    '', // e.g. 'https://youtu.be/xxxxx'
+    // [longitude, latitude] pairs — edit or replace via geojson.io
+    coords: [
+      [-3.177, 52.971],
+      [-3.188, 52.986],
+      [-3.202, 53.001],
+      [-3.215, 53.014],
+      [-3.228, 53.026],
+      [-3.243, 53.040],
+      [-3.258, 53.055],
+    ],
+  },
+  {
+    id:         'elan-valley',
+    tag:        'Mid Wales — Route 2',
+    name:       'Elan Valley',
+    desc:       'The B4518 winds through one of the most remote and dramatic landscapes in Wales. Vast reservoirs, ancient oakwood and open moorland — the roads here feel like a privilege to drive.',
+    distance:   '12',
+    difficulty: 'Moderate',
+    region:     'Powys',
+    youtube:    '',
+    coords: [
+      [-3.511, 52.301],
+      [-3.535, 52.295],
+      [-3.560, 52.284],
+      [-3.585, 52.291],
+      [-3.610, 52.308],
+      [-3.635, 52.297],
+      [-3.658, 52.279],
+    ],
+  },
+  {
+    id:         'rhigos',
+    tag:        'South Wales — Route 3',
+    name:       'Rhigos Mountain Road',
+    desc:       'The A4061 climbs steeply from the valley floor to the open ridge above Rhigos. At the summit, South Wales unfolds in every direction — the Bristol Channel to the south, the Beacons rolling north.',
+    distance:   '7',
+    difficulty: 'Challenging',
+    region:     'Rhondda Cynon Taf',
+    youtube:    '',
+    coords: [
+      [-3.510, 51.714],
+      [-3.520, 51.726],
+      [-3.532, 51.739],
+      [-3.543, 51.752],
+      [-3.549, 51.763],
+      [-3.556, 51.748],
+      [-3.563, 51.728],
+      [-3.569, 51.700],
+    ],
+  },
+  {
+    id:         'black-mountain',
+    tag:        'South Wales — Route 4',
+    name:       'Black Mountain Pass',
+    desc:       'The A4069 over the Black Mountain is one of the great unsung drives of the Brecon Beacons. Smooth tarmac, long sight lines and a summit that drops you into the lush Tywi Valley below.',
+    distance:   '10',
+    difficulty: 'Moderate',
+    region:     'Carmarthenshire',
+    youtube:    '',
+    coords: [
+      [-3.869, 51.814],
+      [-3.853, 51.832],
+      [-3.839, 51.849],
+      [-3.825, 51.863],
+      [-3.841, 51.881],
+      [-3.862, 51.897],
+      [-3.888, 51.911],
+    ],
+  },
+  {
+    id:         'bwlch-y-groes',
+    tag:        'Mid Wales — Route 5',
+    name:       "Bwlch y Groes",
+    desc:       "Wales' highest paved road at 545m. The B4391 switchbacks above Lake Vyrnwy before emerging onto an exposed ridge with views stretching to Snowdonia. Remote, raw, and completely unforgettable.",
+    distance:   '9',
+    difficulty: 'Expert',
+    region:     'Gwynedd / Powys',
+    youtube:    '',
+    coords: [
+      [-3.632, 52.757],
+      [-3.645, 52.763],
+      [-3.657, 52.768],
+      [-3.670, 52.761],
+      [-3.680, 52.750],
+      [-3.690, 52.739],
+    ],
+  },
+];
+
+// ══════════════════════════════════════════════
+//  MAP INIT
+// ══════════════════════════════════════════════
+const map = L.map('map', {
+  center: [52.4, -3.85],
+  zoom: 8,
+  zoomControl: true,
+  minZoom: 7,
+  maxZoom: 16,
+});
+
+// Dark basemap — CartoDB Dark Matter (no API key required)
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
+  subdomains: 'abcd',
+  maxZoom: 19,
+}).addTo(map);
+
+// ── STYLES ──
+const S_DEFAULT = { color: '#4a4a4a', weight: 5,  opacity: 0.9, lineCap: 'round', lineJoin: 'round' };
+const S_HOVER   = { color: '#aaaaaa', weight: 6.5, opacity: 1  };
+const S_ACTIVE  = { color: '#B8272D', weight: 6.5, opacity: 1  };
+
+let activeLayer = null;
+
+// ── DRAW ROUTES ──
+ROUTES.forEach(route => {
+  const latlngs = route.coords.map(c => [c[1], c[0]]); // [lng,lat] → [lat,lng]
+  const line = L.polyline(latlngs, { ...S_DEFAULT }).addTo(map);
+  line._routeData = route;
+
+  line.on('mouseover', function() {
+    if (this !== activeLayer) this.setStyle(S_HOVER);
+    this.bringToFront();
+    map.getContainer().style.cursor = 'pointer';
+  });
+  line.on('mouseout', function() {
+    if (this !== activeLayer) this.setStyle(S_DEFAULT);
+    map.getContainer().style.cursor = '';
+  });
+  line.on('click', function(e) {
+    L.DomEvent.stopPropagation(e);
+    if (activeLayer) activeLayer.setStyle(S_DEFAULT);
+    activeLayer = this;
+    this.setStyle(S_ACTIVE);
+    this.bringToFront();
+    openPanel(this._routeData);
+  });
+});
+
+// Close panel when clicking empty map
+map.on('click', () => {
+  if (activeLayer) { activeLayer.setStyle(S_DEFAULT); activeLayer = null; }
+  closePanel();
+});
+
+// ══════════════════════════════════════════════
+//  PANEL
+// ══════════════════════════════════════════════
+const panel      = document.getElementById('routePanel');
+const hint       = document.getElementById('mapHint');
+const panelVideo = document.getElementById('panelVideo');
+const panelClose = document.getElementById('panelClose');
+
+function openPanel(d) {
+  document.getElementById('panelTag').textContent    = d.tag;
+  document.getElementById('panelTitle').textContent  = d.name;
+  document.getElementById('panelDesc').textContent   = d.desc;
+  document.getElementById('panelDist').textContent   = d.distance;
+  document.getElementById('panelDiff').textContent   = d.difficulty;
+  document.getElementById('panelRegion').textContent = d.region;
+
+  if (d.youtube) {
+    panelVideo.href = d.youtube;
+    panelVideo.classList.remove('no-video');
+    panelVideo.innerHTML = `<div class="play-btn"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>`;
+  } else {
+    panelVideo.removeAttribute('href');
+    panelVideo.classList.add('no-video');
+    panelVideo.innerHTML = `<span class="no-video-label">No video yet —<br>add YouTube URL in ROUTES</span>`;
+  }
+
+  hint.style.display = 'none';
+  panel.classList.add('visible');
+}
+
+function closePanel() {
+  panel.classList.remove('visible');
+  hint.style.display = 'flex';
+}
+
+panelClose.addEventListener('click', () => {
+  if (activeLayer) { activeLayer.setStyle(S_DEFAULT); activeLayer = null; }
+  closePanel();
+});
+</script>
+</body>
+</html>
