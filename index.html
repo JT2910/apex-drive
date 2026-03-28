@@ -29,7 +29,21 @@
     }
     *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
     html { scroll-behavior:smooth; }
-    body { background:#030303; color:var(--white); font-family:var(--font-body); font-weight:300; overflow-x:hidden; cursor:none; }
+    body { background:var(--black); color:var(--white); font-family:var(--font-body); font-weight:300; overflow-x:hidden; cursor:none; }
+
+    /* Contour topographic background — visible either side of capped hero on wide screens */
+    body::after {
+      content:'';
+      position:fixed;
+      inset:0;
+      z-index:-1;
+      background-color:#0a0a0a;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='600'%3E%3Cpath d='M-50%2C80 C80%2C55 180%2C110 320%2C75 S520%2C50 680%2C85 S820%2C70 950%2C60' stroke='rgba(255%2C255%2C255%2C0.045)' fill='none' stroke-width='1'/%3E%3Cpath d='M-50%2C155 C80%2C130 180%2C185 320%2C150 S520%2C125 680%2C160 S820%2C145 950%2C135' stroke='rgba(255%2C255%2C255%2C0.035)' fill='none' stroke-width='1'/%3E%3Cpath d='M-50%2C230 C80%2C205 180%2C260 320%2C225 S520%2C200 680%2C235 S820%2C220 950%2C210' stroke='rgba(255%2C255%2C255%2C0.045)' fill='none' stroke-width='1'/%3E%3Cpath d='M-50%2C300 C120%2C275 220%2C340 360%2C295 S540%2C270 720%2C305 S860%2C285 950%2C278' stroke='rgba(255%2C255%2C255%2C0.03)' fill='none' stroke-width='1'/%3E%3Cpath d='M-50%2C375 C100%2C350 200%2C410 340%2C370 S560%2C345 720%2C378 S860%2C360 950%2C352' stroke='rgba(255%2C255%2C255%2C0.04)' fill='none' stroke-width='1'/%3E%3Cpath d='M-50%2C445 C80%2C420 200%2C480 350%2C445 S540%2C418 700%2C450 S850%2C433 950%2C426' stroke='rgba(255%2C255%2C255%2C0.03)' fill='none' stroke-width='1'/%3E%3Cpath d='M-50%2C515 C90%2C490 210%2C548 360%2C515 S550%2C490 710%2C522 S855%2C505 950%2C498' stroke='rgba(255%2C255%2C255%2C0.045)' fill='none' stroke-width='1'/%3E%3Cpath d='M-50%2C118 C110%2C92 230%2C148 390%2C112 S570%2C88 750%2C120 S880%2C104 950%2C97' stroke='rgba(184%2C39%2C45%2C0.06)' fill='none' stroke-width='1'/%3E%3Cpath d='M-50%2C338 C110%2C312 240%2C370 400%2C333 S590%2C308 760%2C342 S890%2C324 950%2C317' stroke='rgba(184%2C39%2C45%2C0.05)' fill='none' stroke-width='1'/%3E%3C/svg%3E");
+      background-size:900px 600px;
+      background-repeat:repeat;
+      opacity:1;
+      pointer-events:none;
+    }
 
     /* CURSOR */
     .cursor { position:fixed; width:8px; height:8px; background:var(--rosso); border-radius:50%; pointer-events:none; z-index:9999; transform:translate(-50%,-50%); }
@@ -38,11 +52,8 @@
     /* NOISE */
     body::before { content:''; position:fixed; inset:0; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E"); opacity:0.025; pointer-events:none; z-index:9000; }
 
-    /* SITE-WIDE MAX WIDTH */
-    .site-wrap { max-width:1440px; margin:0 auto; position:relative; overflow-x:hidden; }
-
     /* NAV */
-    nav { position:fixed; top:0; left:50%; transform:translateX(-50%); width:100%; max-width:1440px; z-index:1000; display:flex; align-items:center; justify-content:space-between; padding:1.4rem 3rem; background:linear-gradient(to bottom,rgba(10,10,10,0.95),transparent); transition:background 0.4s,border 0.4s; }
+    nav { position:fixed; top:0; left:0; right:0; z-index:1000; display:flex; align-items:center; justify-content:space-between; padding:1.4rem 3rem; background:linear-gradient(to bottom,rgba(10,10,10,0.95),transparent); transition:background 0.4s,border 0.4s; }
     nav.scrolled { background:rgba(10,10,10,0.97); border-bottom:1px solid rgba(255,255,255,0.04); }
     .logo { font-family:var(--font-display); font-size:1.9rem; letter-spacing:0.12em; color:var(--white); text-decoration:none; }
     .logo span { color:var(--rosso); }
@@ -65,6 +76,8 @@
       background: #0d0d0d;
       display: flex;
       align-items: flex-end;
+      max-width: 1600px;
+      margin: 0 auto;
     }
 
     /* The full-bleed photo */
@@ -540,8 +553,6 @@
 
 <div class="cursor" id="cursor"></div>
 <div class="cursor-ring" id="cursorRing"></div>
-
-<div class="site-wrap">
 
 <!-- NAV -->
 <nav id="mainNav">
@@ -1141,6 +1152,5 @@
   }
 </script>
 
-</div><!-- /.site-wrap -->
 </body>
 </html>
