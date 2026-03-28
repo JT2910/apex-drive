@@ -172,6 +172,7 @@
 
     /* Exhaust image-space wrapper — JS sizes this to exactly match the rendered image */
     .exhaust-image-wrap { position:absolute; pointer-events:none; z-index:3; }
+    @media(max-width:1000px){ .exhaust-image-wrap { display:none; } }
 
 
     /* Right pipe — offset all puff timings so pipes look independent */
@@ -541,7 +542,6 @@
       .signup-form button { width: 100%; padding: 1rem; }
       /* Hide custom cursor on touch devices */
       .cursor, .cursor-ring { display: none; }
-      .exhaust-wrap { display: none; }
       /* Prevent quote background word overflowing */
       .quote-bg-word { font-size: clamp(3.5rem, 18vw, 6rem); }
     }
@@ -609,7 +609,7 @@
 
   <!-- ── EXHAUST SMOKE — wrapper sized to match rendered image by JS ── -->
   <div class="exhaust-image-wrap">
-    <div class="exhaust-wrap" style="left:76%;bottom:16%;">
+    <div class="exhaust-wrap" style="left:77%;bottom:18%;">
       <div class="smoke-puff"></div>
       <div class="smoke-puff"></div>
       <div class="smoke-puff"></div>
@@ -619,7 +619,7 @@
       <div class="smoke-puff"></div>
       <div class="smoke-puff"></div>
     </div>
-    <div class="exhaust-wrap exhaust-right" style="left:78%;bottom:16%;">
+    <div class="exhaust-wrap exhaust-right" style="left:79%;bottom:18%;">
       <div class="smoke-puff"></div>
       <div class="smoke-puff"></div>
       <div class="smoke-puff"></div>
