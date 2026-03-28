@@ -29,7 +29,7 @@
     }
     *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
     html { scroll-behavior:smooth; }
-    body { background:var(--black); color:var(--white); font-family:var(--font-body); font-weight:300; overflow-x:hidden; cursor:none; }
+    body { background:#030303; color:var(--white); font-family:var(--font-body); font-weight:300; overflow-x:hidden; cursor:none; }
 
     /* CURSOR */
     .cursor { position:fixed; width:8px; height:8px; background:var(--rosso); border-radius:50%; pointer-events:none; z-index:9999; transform:translate(-50%,-50%); }
@@ -38,8 +38,11 @@
     /* NOISE */
     body::before { content:''; position:fixed; inset:0; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E"); opacity:0.025; pointer-events:none; z-index:9000; }
 
+    /* SITE-WIDE MAX WIDTH */
+    .site-wrap { max-width:1440px; margin:0 auto; position:relative; overflow-x:hidden; }
+
     /* NAV */
-    nav { position:fixed; top:0; left:0; right:0; z-index:1000; display:flex; align-items:center; justify-content:space-between; padding:1.4rem 3rem; background:linear-gradient(to bottom,rgba(10,10,10,0.95),transparent); transition:background 0.4s,border 0.4s; }
+    nav { position:fixed; top:0; left:50%; transform:translateX(-50%); width:100%; max-width:1440px; z-index:1000; display:flex; align-items:center; justify-content:space-between; padding:1.4rem 3rem; background:linear-gradient(to bottom,rgba(10,10,10,0.95),transparent); transition:background 0.4s,border 0.4s; }
     nav.scrolled { background:rgba(10,10,10,0.97); border-bottom:1px solid rgba(255,255,255,0.04); }
     .logo { font-family:var(--font-display); font-size:1.9rem; letter-spacing:0.12em; color:var(--white); text-decoration:none; }
     .logo span { color:var(--rosso); }
@@ -537,6 +540,8 @@
 
 <div class="cursor" id="cursor"></div>
 <div class="cursor-ring" id="cursorRing"></div>
+
+<div class="site-wrap">
 
 <!-- NAV -->
 <nav id="mainNav">
@@ -1135,5 +1140,7 @@
     document.getElementById('emailInput').value='';
   }
 </script>
+
+</div><!-- /.site-wrap -->
 </body>
 </html>
