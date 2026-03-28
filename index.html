@@ -154,11 +154,7 @@
       }
     }
 
-    /* Mobile — exhaust pipes land at a different crop position */
-    @media(max-width:900px){
-      .exhaust-wrap:not(.exhaust-right) { left:74% !important; bottom:12% !important; }
-      .exhaust-right { left:81% !important; bottom:12% !important; }
-    }
+    /* Exhaust positions set dynamically by JS (positionSmoke) */
 
     /* Right pipe — offset all puff timings so pipes look independent */
     .exhaust-right .smoke-puff:nth-child(1) { animation-delay:0.6s; }
@@ -527,6 +523,7 @@
       .signup-form button { width: 100%; padding: 1rem; }
       /* Hide custom cursor on touch devices */
       .cursor, .cursor-ring { display: none; }
+      .exhaust-wrap { display: none; }
       /* Prevent quote background word overflowing */
       .quote-bg-word { font-size: clamp(3.5rem, 18vw, 6rem); }
     }
@@ -593,7 +590,7 @@
 
 
   <!-- ── EXHAUST SMOKE — left pair ── -->
-  <div class="exhaust-wrap" style="left:76%;bottom:16%;">
+  <div class="exhaust-wrap">
     <div class="smoke-puff"></div>
     <div class="smoke-puff"></div>
     <div class="smoke-puff"></div>
@@ -604,7 +601,7 @@
     <div class="smoke-puff"></div>
   </div>
   <!-- ── EXHAUST SMOKE — right pair ── -->
-  <div class="exhaust-wrap exhaust-right" style="left:78%;bottom:16%;">
+  <div class="exhaust-wrap exhaust-right">
     <div class="smoke-puff"></div>
     <div class="smoke-puff"></div>
     <div class="smoke-puff"></div>
@@ -1096,6 +1093,57 @@
       map.precompute();
     });
   }
+
+  // ── SMOKE POSITIONING ──
+  // Calculates where the car's exhaust tips land in the viewport at any size,
+  // accounting for object-fit:cover and object-position changes.
+  (function() {
+    const IMG_W = 1440, IMG_H = 900;
+    // Fractional position of each exhaust tip within the original image
+    // (derived from the calibrated desktop positions left:76%/78%, bottom:16%)
+    const LEFT_X  = 0.76;  // left pipe — fraction across image width
+    const RIGHT_X = 0.78;  // right pipe
+    const PIPE_Y  = 0.84;  // fraction down image height (bottom:16% → top:84%)
+
+    function calc() {
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const isMobile = vw <= 900;
+
+      // object-position values
+      const posX = isMobile ? 0.72 : 0.50;
+      const posY = 0.40;
+
+      // object-fit: cover — use whichever scale fills the container
+      const scale = Math.max(vw / IMG_W, vh / IMG_H);
+      const rendW = IMG_W * scale;
+      const rendH = IMG_H * scale;
+
+      // How much of the rendered image is clipped on left / top
+      const clipX = (rendW - vw) * posX;
+      const clipY = (rendH - vh) * posY;
+
+      // Viewport X/Y of each pipe tip
+      const leftVpX  = LEFT_X  * rendW - clipX;
+      const rightVpX = RIGHT_X * rendW - clipX;
+      const pipeVpY  = PIPE_Y  * rendH - clipY;
+
+      // Convert to CSS left% and bottom%
+      const leftLeft   = (leftVpX  / vw * 100).toFixed(2) + '%';
+      const rightLeft  = (rightVpX / vw * 100).toFixed(2) + '%';
+      const bottom     = ((vh - pipeVpY) / vh * 100).toFixed(2) + '%';
+
+      const wraps = document.querySelectorAll('.exhaust-wrap');
+      if (wraps[0]) { wraps[0].style.left = leftLeft;  wraps[0].style.bottom = bottom; }
+      if (wraps[1]) { wraps[1].style.left = rightLeft; wraps[1].style.bottom = bottom; }
+    }
+
+    // Run on load (after image has natural dimensions)
+    const img = document.querySelector('.hero-scene');
+    if (img && img.complete) { calc(); } else if (img) { img.addEventListener('load', calc); }
+    calc();
+    window.addEventListener('resize', calc, { passive: true });
+  })();
 
   // Boot
   initContours();
