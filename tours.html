@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tours — APEX DRIVE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;600;700&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --rosso:#B8272D; --black:#0a0a0a; --dark:#111111; --dark-2:#181818;
+      --grey-light:#999; --off-white:#F4F1EC; --white-section:#EDEAE4;
+      --white:#F0EDE8; --ink:#1a1a1a; --ink-light:#484848; --ink-muted:#888;
+      --font-display:'Bebas Neue',sans-serif;
+      --font-condensed:'Barlow Condensed',sans-serif;
+      --font-body:'Barlow',sans-serif;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;}
+    body{background:var(--black);color:var(--white);font-family:var(--font-body);font-weight:300;overflow-x:hidden;cursor:none;}
+    body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");opacity:0.025;pointer-events:none;z-index:9000;}
+    body::after{content:'';position:fixed;inset:0;z-index:-1;background-color:#0a0a0a;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='600'%3E%3Cpath d='M-50%2C80 C80%2C55 180%2C110 320%2C75 S520%2C50 680%2C85 S820%2C70 950%2C60' stroke='rgba(255%2C255%2C255%2C0.045)' fill='none' stroke-width='1'/%3E%3Cpath d='M-50%2C230 C80%2C205 180%2C260 320%2C225 S520%2C200 680%2C235 S820%2C220 950%2C210' stroke='rgba(255%2C255%2C255%2C0.045)' fill='none' stroke-width='1'/%3E%3Cpath d='M-50%2C375 C100%2C350 200%2C410 340%2C370 S560%2C345 720%2C378 S860%2C360 950%2C352' stroke='rgba(255%2C255%2C255%2C0.04)' fill='none' stroke-width='1'/%3E%3Cpath d='M-50%2C515 C90%2C490 210%2C548 360%2C515 S550%2C490 710%2C522 S855%2C505 950%2C498' stroke='rgba(255%2C255%2C255%2C0.045)' fill='none' stroke-width='1'/%3E%3C/svg%3E");background-size:900px 600px;background-repeat:repeat;pointer-events:none;}
+    .cursor{position:fixed;width:8px;height:8px;background:var(--rosso);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);}
+    .cursor-ring{position:fixed;width:32px;height:32px;border:1px solid rgba(180,180,180,0.2);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:all 0.18s ease;}
+
+    /* NAV */
+    nav{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;align-items:center;justify-content:space-between;padding:1.4rem 3rem;background:rgba(10,10,10,0.97);border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.4s;}
+    .logo{font-family:var(--font-display);font-size:1.9rem;letter-spacing:0.12em;color:var(--white);text-decoration:none;}
+    .logo span{color:var(--rosso);}
+    .nav-links{display:flex;align-items:center;gap:2.2rem;list-style:none;}
+    .nav-links a{font-family:var(--font-condensed);font-size:0.78rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,255,255,0.4);text-decoration:none;transition:color 0.2s;}
+    .nav-links a:hover,.nav-links a.active{color:var(--white);}
+    .nav-socials{display:flex;gap:1.1rem;align-items:center;}
+    .nav-socials a{color:rgba(255,255,255,0.22);transition:color 0.2s;display:flex;}
+    .nav-socials a:hover{color:var(--white);}
+    .nav-socials svg{width:14px;height:14px;fill:currentColor;}
+    .burger{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:4px;}
+    .burger span{display:block;width:22px;height:1.5px;background:var(--white);}
+    .mobile-drawer{position:fixed;inset:0;background:rgba(8,8,8,0.97);z-index:1050;display:flex;flex-direction:column;justify-content:center;align-items:center;opacity:0;pointer-events:none;transition:opacity 0.35s ease;backdrop-filter:blur(12px);}
+    .mobile-drawer.open{opacity:1;pointer-events:all;}
+    .mobile-drawer ul{list-style:none;text-align:center;margin-bottom:3rem;}
+    .mobile-drawer ul li{overflow:hidden;}
+    .mobile-drawer ul li a{font-family:var(--font-display);font-size:clamp(2.8rem,8vw,5rem);letter-spacing:0.06em;color:rgba(255,255,255,0.85);text-decoration:none;display:block;padding:0.15rem 0;transform:translateY(40px);opacity:0;transition:transform 0.4s ease,opacity 0.4s ease,color 0.2s;}
+    .mobile-drawer.open ul li a{transform:translateY(0);opacity:1;}
+    .mobile-drawer.open ul li:nth-child(1) a{transition-delay:0.08s;}
+    .mobile-drawer.open ul li:nth-child(2) a{transition-delay:0.14s;}
+    .mobile-drawer.open ul li:nth-child(3) a{transition-delay:0.20s;}
+    .mobile-drawer.open ul li:nth-child(4) a{transition-delay:0.26s;}
+    .mobile-drawer ul li a:hover{color:var(--rosso);}
+    .drawer-close{position:absolute;top:1.4rem;right:3rem;background:none;border:none;color:rgba(255,255,255,0.4);font-size:1.5rem;cursor:none;}
+
+    /* PAGE HERO */
+    .page-hero{padding:10rem 3rem 5rem;background:var(--black);}
+    .page-hero-inner{max-width:1200px;margin:0 auto;}
+    .section-label{font-family:var(--font-condensed);font-size:0.68rem;letter-spacing:0.38em;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:1.2rem;display:flex;align-items:center;gap:0.9rem;}
+    .section-label::before{content:'';display:block;width:26px;height:1px;background:rgba(255,255,255,0.18);}
+    .section-label-dark{font-family:var(--font-condensed);font-size:0.68rem;letter-spacing:0.38em;text-transform:uppercase;color:rgba(20,20,20,0.45);margin-bottom:1.2rem;display:flex;align-items:center;gap:0.9rem;}
+    .section-label-dark::before{content:'';display:block;width:26px;height:1px;background:rgba(20,20,20,0.25);}
+    .h-page{font-family:var(--font-display);font-size:clamp(3.5rem,7vw,6rem);line-height:0.9;letter-spacing:0.03em;color:var(--white);}
+    .page-hero-sub{font-family:var(--font-condensed);font-size:1rem;letter-spacing:0.06em;color:rgba(255,255,255,0.35);line-height:1.7;max-width:520px;margin-top:1.4rem;}
+
+    /* TOURS GRID */
+    #tours-grid{background:var(--dark);padding:5rem 3rem 8rem;}
+    .tours-inner{max-width:1200px;margin:0 auto;}
+    .tours-section-header{margin-bottom:4rem;}
+    .h-section-dark{font-family:var(--font-display);font-size:clamp(2.2rem,4vw,3.2rem);line-height:0.92;letter-spacing:0.03em;color:var(--white);}
+
+    .tour-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-bottom:4rem;}
+    .tour-card{background:rgba(255,255,255,0.025);padding:2.8rem 2.2rem;border-top:2px solid rgba(255,255,255,0.06);position:relative;transition:background 0.2s;display:flex;flex-direction:column;}
+    .tour-card:hover{background:rgba(255,255,255,0.045);}
+    .tour-card-index{font-family:var(--font-display);font-size:5rem;line-height:1;color:rgba(255,255,255,0.04);position:absolute;top:1.2rem;right:1.6rem;pointer-events:none;}
+    .tour-card-label{font-family:var(--font-condensed);font-size:0.6rem;letter-spacing:0.28em;text-transform:uppercase;color:rgba(255,255,255,0.25);margin-bottom:1rem;}
+    .tour-card-name{font-family:var(--font-display);font-size:2.2rem;letter-spacing:0.04em;color:var(--white);line-height:0.95;margin-bottom:0.6rem;}
+    .tour-card-duration{font-family:var(--font-condensed);font-size:0.7rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--rosso);margin-bottom:1.4rem;}
+    .tour-card-desc{font-size:0.88rem;line-height:1.75;color:rgba(255,255,255,0.42);margin-bottom:1.8rem;flex:1;}
+    .tour-card-includes{margin-bottom:1.8rem;}
+    .tour-includes-label{font-family:var(--font-condensed);font-size:0.6rem;letter-spacing:0.22em;text-transform:uppercase;color:rgba(255,255,255,0.22);margin-bottom:0.6rem;}
+    .tour-includes-list{list-style:none;display:flex;flex-direction:column;gap:0.35rem;}
+    .tour-includes-list li{font-family:var(--font-condensed);font-size:0.72rem;letter-spacing:0.08em;color:rgba(255,255,255,0.38);display:flex;align-items:center;gap:0.6rem;}
+    .tour-includes-list li::before{content:'';display:block;width:8px;height:1px;background:var(--rosso);flex-shrink:0;}
+    .tour-card-price{font-family:var(--font-condensed);font-size:0.7rem;letter-spacing:0.12em;color:rgba(255,255,255,0.22);margin-bottom:1.2rem;}
+    .tour-card-price strong{font-size:1.1rem;color:rgba(255,255,255,0.55);letter-spacing:0.04em;}
+    .btn-tour{font-family:var(--font-condensed);font-size:0.7rem;letter-spacing:0.22em;text-transform:uppercase;background:transparent;border:1px solid rgba(255,255,255,0.18);color:rgba(255,255,255,0.5);padding:0.9rem 1.8rem;cursor:pointer;text-decoration:none;display:inline-block;transition:all 0.2s;align-self:flex-start;}
+    .btn-tour:hover{background:var(--rosso);border-color:var(--rosso);color:var(--white);}
+
+    /* BESPOKE SECTION */
+    #bespoke{background:var(--white-section);padding:7rem 3rem;}
+    .bespoke-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:6rem;align-items:center;}
+    .h-dark{font-family:var(--font-display);font-size:clamp(2.8rem,5vw,4.5rem);line-height:0.9;letter-spacing:0.03em;color:var(--ink);}
+    .bespoke-body{font-size:0.95rem;line-height:1.8;color:var(--ink-light);margin-top:1.6rem;}
+    .bespoke-features{display:flex;flex-direction:column;gap:1.4rem;margin-top:2.5rem;}
+    .bespoke-feature{display:flex;gap:1.4rem;align-items:flex-start;}
+    .bespoke-feature-icon{width:36px;height:36px;border:1px solid rgba(20,20,20,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--font-display);font-size:1.1rem;color:var(--rosso);}
+    .bespoke-feature-text{font-family:var(--font-condensed);font-size:0.82rem;letter-spacing:0.06em;color:var(--ink-light);line-height:1.6;}
+    .bespoke-feature-text strong{display:block;font-size:0.9rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink);margin-bottom:0.2rem;}
+    .btn-bespoke{font-family:var(--font-condensed);font-size:0.7rem;letter-spacing:0.22em;text-transform:uppercase;background:var(--ink);color:var(--white);border:none;padding:1.1rem 2.5rem;cursor:pointer;text-decoration:none;display:inline-block;transition:background 0.2s;margin-top:2.5rem;}
+    .btn-bespoke:hover{background:var(--rosso);}
+
+    /* REVEAL */
+    .reveal{opacity:0;transform:translateY(28px);transition:opacity 0.7s ease,transform 0.7s ease;}
+    .reveal.in-view{opacity:1;transform:none;}
+    .rd1{transition-delay:0.1s;}.rd2{transition-delay:0.2s;}.rd3{transition-delay:0.3s;}
+
+    /* FOOTER */
+    footer{background:var(--black);padding:3rem;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:2rem;border-top:1px solid rgba(255,255,255,0.04);}
+    .footer-logo{font-family:var(--font-display);font-size:1.4rem;letter-spacing:0.12em;color:rgba(255,255,255,0.3);text-decoration:none;}
+    .footer-logo span{color:var(--rosso);}
+    .footer-links{display:flex;gap:2rem;list-style:none;justify-content:center;}
+    .footer-links a{font-family:var(--font-condensed);font-size:0.68rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,255,255,0.22);text-decoration:none;transition:color 0.2s;}
+    .footer-links a:hover{color:var(--white);}
+    .footer-socials{display:flex;gap:1rem;justify-content:flex-end;}
+    .footer-socials a{color:rgba(255,255,255,0.18);transition:color 0.2s;display:flex;}
+    .footer-socials a:hover{color:var(--white);}
+    .footer-socials svg{width:14px;height:14px;fill:currentColor;}
+    .sub-footer{background:var(--black);border-top:1px solid rgba(255,255,255,0.04);padding:0.9rem 3rem;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;}
+    .sub-footer-built{display:inline-flex;align-items:center;gap:0.55rem;text-decoration:none;transition:opacity 0.2s;}
+    .sub-footer-built:hover{opacity:0.65;}
+    .sub-footer-built img{width:22px;height:22px;border-radius:50%;object-fit:cover;opacity:0.55;}
+    .sub-footer-built span{font-family:var(--font-condensed);font-size:0.62rem;letter-spacing:0.16em;text-transform:uppercase;color:rgba(255,255,255,0.22);}
+
+    @media(max-width:900px){
+      nav{padding:1.2rem 1.5rem;}
+      .nav-links,.nav-socials{display:none;}
+      .burger{display:flex;}
+      .page-hero{padding:8rem 1.5rem 3rem;}
+      #tours-grid{padding:3rem 1.5rem 5rem;}
+      #bespoke{padding:5rem 1.5rem;}
+      .tour-cards{grid-template-columns:1fr;}
+      .bespoke-inner{grid-template-columns:1fr;gap:3rem;}
+      footer{grid-template-columns:1fr;text-align:center;}
+      .footer-links,.footer-socials{justify-content:center;}
+      .sub-footer{grid-template-columns:1fr;justify-items:center;padding:0.9rem 1.5rem;}
+      .cursor,.cursor-ring{display:none;}
+    }
+  </style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<nav id="mainNav">
+  <a href="index.html" class="logo">APEX<span>.</span>DRIVE</a>
+  <ul class="nav-links">
+    <li><a href="events.html">Events</a></li>
+    <li><a href="tours.html" class="active">Tours</a></li>
+    <li><a href="index.html#route">The Route</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+  <div class="nav-socials">
+    <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a>
+    <a href="#" aria-label="YouTube"><svg viewBox="0 0 24 24"><path d="M23.499 6.203a3.008 3.008 0 0 0-2.089-2.089c-1.87-.501-9.4-.501-9.4-.501s-7.509-.01-9.399.501A3.008 3.008 0 0 0 .522 6.203C0 8.073 0 12 0 12s0 3.927.522 5.797a3.008 3.008 0 0 0 2.089 2.089c1.9.504 9.4.504 9.4.504s7.509 0 9.399-.504a3.008 3.008 0 0 0 2.089-2.089C24 15.927 24 12 24 12s0-3.927-.501-5.797zM9.609 15.601V8.408l6.264 3.602z"/></svg></a>
+    <a href="#" aria-label="Facebook"><svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+  </div>
+  <button class="burger" id="burgerBtn"><span></span><span></span><span></span></button>
+</nav>
+
+<div class="mobile-drawer" id="mobileDrawer">
+  <button class="drawer-close" id="drawerClose">✕</button>
+  <ul>
+    <li><a href="events.html">Events</a></li>
+    <li><a href="tours.html">Tours</a></li>
+    <li><a href="index.html#route">The Route</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+</div>
+
+<!-- PAGE HERO -->
+<div class="page-hero">
+  <div class="page-hero-inner">
+    <div class="section-label reveal">Drive in Company</div>
+    <h1 class="h-page reveal rd1">CURATED<br>TOURS</h1>
+    <p class="page-hero-sub reveal rd2">Multi-day driving experiences built around Wales's finest roads. Every detail handled — just bring the car.</p>
+  </div>
+</div>
+
+<!-- TOUR CARDS — rendered from JS data below -->
+<section id="tours-grid">
+  <div class="tours-inner">
+    <div class="tours-section-header reveal">
+      <div class="section-label">Our Tours</div>
+    </div>
+    <div class="tour-cards" id="tourCards"></div>
+  </div>
+</section>
+
+<!-- BESPOKE -->
+<section id="bespoke">
+  <div class="bespoke-inner">
+    <div>
+      <div class="section-label-dark reveal">Private Experiences</div>
+      <h2 class="h-dark reveal rd1">BESPOKE<br>DRIVES</h2>
+      <p class="bespoke-body reveal rd2">Not every drive fits a calendar. If you want something tailored — a private route, a specific car, a group of friends — we'll build it from scratch. Tell us what you have in mind.</p>
+      <a href="contact.html" class="btn-bespoke reveal rd3">Talk to Us →</a>
+    </div>
+    <div class="bespoke-features reveal rd1">
+      <div class="bespoke-feature">
+        <div class="bespoke-feature-icon">01</div>
+        <div class="bespoke-feature-text">
+          <strong>Route Design</strong>
+          We plan every mile. You get a briefing pack, waypoints, and a guide on the day.
+        </div>
+      </div>
+      <div class="bespoke-feature">
+        <div class="bespoke-feature-icon">02</div>
+        <div class="bespoke-feature-text">
+          <strong>Car Sourcing</strong>
+          Don't own the right car? We can arrange access to curated machines for the occasion.
+        </div>
+      </div>
+      <div class="bespoke-feature">
+        <div class="bespoke-feature-icon">03</div>
+        <div class="bespoke-feature-text">
+          <strong>Full Logistics</strong>
+          Hotels, meals, recovery — everything arranged so you focus entirely on driving.
+        </div>
+      </div>
+      <div class="bespoke-feature">
+        <div class="bespoke-feature-icon">04</div>
+        <div class="bespoke-feature-text">
+          <strong>Photography</strong>
+          Optional on-route photography to document the experience properly.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <a href="index.html" class="footer-logo">APEX<span>.</span>DRIVE</a>
+  <ul class="footer-links">
+    <li><a href="events.html">Events</a></li>
+    <li><a href="tours.html">Tours</a></li>
+    <li><a href="index.html#route">Route</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+  <div class="footer-socials">
+    <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a>
+    <a href="#" aria-label="YouTube"><svg viewBox="0 0 24 24"><path d="M23.499 6.203a3.008 3.008 0 0 0-2.089-2.089c-1.87-.501-9.4-.501-9.4-.501s-7.509-.01-9.399.501A3.008 3.008 0 0 0 .522 6.203C0 8.073 0 12 0 12s0 3.927.522 5.797a3.008 3.008 0 0 0 2.089 2.089c1.9.504 9.4.504 9.4.504s7.509 0 9.399-.504a3.008 3.008 0 0 0 2.089-2.089C24 15.927 24 12 24 12s0-3.927-.501-5.797zM9.609 15.601V8.408l6.264 3.602z"/></svg></a>
+    <a href="#" aria-label="Facebook"><svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+  </div>
+</footer>
+<div class="sub-footer">
+  <div></div>
+  <a href="https://descent.digital/" class="sub-footer-built" target="_blank" rel="noopener">
+    <img src="https://res.cloudinary.com/diopdbroz/image/upload/w_44,h_44,c_fill,q_auto,f_auto/v1774660187/dd-ig_jlfrsb.jpg" alt="Descent Digital"/>
+    <span>Built by Descent.digital</span>
+  </a>
+  <div></div>
+</div>
+
+<script>
+  // ─────────────────────────────────────────────────────────────
+  // TOURS DATA — edit this array to add/remove/update tours
+  // availability: "available" | "limited" | "enquire"
+  // ─────────────────────────────────────────────────────────────
+  const TOURS = [
+    {
+      name: "The Dragon Loop",
+      duration: "2 Days",
+      region: "North & Mid Wales",
+      description: "Our flagship tour. Start and finish in Snowdonia, taking in Horseshoe Pass, Bwlch y Groes, and the Cambrian Mountains. Overnight in a handpicked country hotel with dinner and debrief.",
+      includes: ["Route briefing pack", "Overnight accommodation", "Evening dinner", "Morning coffee stop"],
+      price: "From £595 per car",
+      availability: "available",
+      ctaLink: "contact.html"
+    },
+    {
+      name: "South Wales Sprint",
+      duration: "1 Day",
+      region: "South Wales",
+      description: "The Black Mountain Pass, Rhigos Mountain Road, and Brecon Beacons in a single day. Hard, fast, and relentless. Lunch stop at altitude. Back before dark.",
+      includes: ["Full route GPS file", "Lunch included", "Post-drive debrief", "Photography spots guide"],
+      price: "From £195 per car",
+      availability: "limited",
+      ctaLink: "contact.html"
+    },
+    {
+      name: "Wales End to End",
+      duration: "4 Days",
+      region: "Full Country",
+      description: "The complete Wales driving experience — Pembrokeshire coast roads to the Snowdonia peaks. Four days, five mountain passes, two valleys. Entirely self-paced with daily briefings.",
+      includes: ["3 nights accommodation", "All meals included", "Daily route packs", "Welcome & farewell dinner"],
+      price: "From £1,495 per car",
+      availability: "enquire",
+      ctaLink: "contact.html"
+    }
+  ];
+
+  // ─────────────────────────────────────────────────────────────
+  // Render tour cards
+  // ─────────────────────────────────────────────────────────────
+  const availabilityLabel = { available: 'Spaces available', limited: 'Limited spaces', enquire: 'Enquire for availability' };
+
+  document.getElementById('tourCards').innerHTML = TOURS.map((t, i) => `
+    <div class="tour-card reveal" style="transition-delay:${i * 0.12}s">
+      <div class="tour-card-index">${String(i + 1).padStart(2, '0')}</div>
+      <div class="tour-card-label">${t.region}</div>
+      <div class="tour-card-name">${t.name}</div>
+      <div class="tour-card-duration">${t.duration}</div>
+      <p class="tour-card-desc">${t.description}</p>
+      <div class="tour-card-includes">
+        <div class="tour-includes-label">Includes</div>
+        <ul class="tour-includes-list">
+          ${t.includes.map(item => `<li>${item}</li>`).join('')}
+        </ul>
+      </div>
+      <div class="tour-card-price">${t.price}</div>
+      <a href="${t.ctaLink}" class="btn-tour">${t.availability === 'enquire' ? 'Enquire →' : 'Register Interest →'}</a>
+    </div>
+  `).join('');
+
+  // Cursor
+  const cursor = document.getElementById('cursor'), ring = document.getElementById('cursorRing');
+  document.addEventListener('mousemove', e => {
+    cursor.style.left = e.clientX + 'px'; cursor.style.top = e.clientY + 'px';
+    ring.style.left = e.clientX + 'px'; ring.style.top = e.clientY + 'px';
+  });
+
+  // Mobile drawer
+  document.getElementById('burgerBtn').addEventListener('click', () => document.getElementById('mobileDrawer').classList.add('open'));
+  document.getElementById('drawerClose').addEventListener('click', () => document.getElementById('mobileDrawer').classList.remove('open'));
+
+  // Reveal
+  const revealEls = document.querySelectorAll('.reveal');
+  revealEls.forEach(el => new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in-view'); });
+  }, { threshold: 0.1 }).observe(el));
+  setTimeout(() => revealEls.forEach(el => el.classList.add('in-view')), 100);
+</script>
+</body>
+</html>
