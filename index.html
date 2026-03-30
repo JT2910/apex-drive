@@ -1189,7 +1189,7 @@
         el.insertAdjacentElement('afterbegin', canvas);
       }
       const map = new ContourMap(canvas, { seed, opacity, scrollFactor, mouseFactor: mouse, resolution: 7, lineSpacing: 42 });
-      contourMaps.push({ map, el });
+      contourMaps.push({ map, el, top: el.offsetTop, height: el.offsetHeight });
     });
   }
 
@@ -1199,14 +1199,13 @@
     smoothMouseY += (mouseNY - smoothMouseY) * 0.04;
     smoothScrollY += (window.scrollY - smoothScrollY) * 0.08;
 
-    contourMaps.forEach(({ map, el }) => {
-      const rect = el.getBoundingClientRect();
-      // Only draw if section is on screen (perf)
-      if (rect.bottom < 0 || rect.top > window.innerHeight * 1.5) return;
+    const vh = window.innerHeight;
+    contourMaps.forEach(({ map, top, height }) => {
+      // Visibility check using cached position — no getBoundingClientRect, no reflow
+      const elTop = top - smoothScrollY;
+      if (elTop > vh * 1.5 || elTop + height < 0) return;
 
-      // Section-local scroll: how far we've scrolled INTO this section
-      const sectionScroll = Math.max(0, smoothScrollY - (el.offsetTop - window.innerHeight));
-
+      const sectionScroll = Math.max(0, smoothScrollY - (top - vh));
       const mxOff = smoothMouseX * map.mouseFactor;
       const myOff = smoothMouseY * map.mouseFactor * 0.5;
       map.draw(sectionScroll, mxOff, myOff);
@@ -1215,12 +1214,23 @@
     requestAnimationFrame(contourLoop);
   }
 
-  // Resize handler
-  function handleResize() {
-    contourMaps.forEach(({ map }) => {
-      map.resize();
-      map.precompute();
+  // Update cached section positions (called on resize)
+  function updatePositions() {
+    contourMaps.forEach(item => {
+      item.top    = item.el.offsetTop;
+      item.height = item.el.offsetHeight;
     });
+  }
+
+  // Resize handler — resize canvas immediately, debounce expensive precompute
+  let _resizeTimer;
+  function handleResize() {
+    contourMaps.forEach(({ map }) => map.resize());
+    updatePositions();
+    clearTimeout(_resizeTimer);
+    _resizeTimer = setTimeout(() => {
+      contourMaps.forEach(({ map }) => map.precompute());
+    }, 250);
   }
 
   // ── EXHAUST IMAGE-WRAP POSITIONING ──
