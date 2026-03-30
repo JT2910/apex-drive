@@ -74,6 +74,12 @@
     .form-submit{font-family:var(--font-condensed);font-size:0.78rem;letter-spacing:0.22em;text-transform:uppercase;background:var(--ink);color:var(--white);border:none;padding:1.1rem 2.5rem;cursor:pointer;transition:background 0.2s;align-self:flex-start;margin-top:0.5rem;}
     .form-submit:hover{background:var(--rosso);}
     .form-note{font-family:var(--font-condensed);font-size:0.65rem;letter-spacing:0.1em;color:var(--ink-muted);margin-top:0.5rem;}
+    .form-success{display:none;padding:2rem;border:1px solid rgba(20,20,20,0.12);text-align:center;}
+    .form-success.visible{display:block;}
+    .form-success-title{font-family:var(--font-display);font-size:2rem;letter-spacing:0.04em;color:var(--ink);margin-bottom:0.6rem;}
+    .form-success-text{font-family:var(--font-condensed);font-size:0.82rem;letter-spacing:0.06em;color:var(--ink-muted);line-height:1.7;}
+    .fs-error-msg{font-family:var(--font-condensed);font-size:0.65rem;letter-spacing:0.1em;color:var(--rosso);margin-top:0.3rem;display:block;}
+    .form-group input[aria-invalid="true"],.form-group select[aria-invalid="true"],.form-group textarea[aria-invalid="true"]{border-color:var(--rosso);}
 
     /* REVEAL */
     .reveal{opacity:0;transform:translateY(28px);transition:opacity 0.7s ease,transform 0.7s ease;}
@@ -163,39 +169,49 @@
       </div>
     </div>
     <div class="reveal rd1">
-      <!-- Replace YOUR_FORM_ID with your Formspree form ID from formspree.io -->
-      <form class="contact-form" action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
+      <div class="form-success" data-fs-success>
+        <div class="form-success-title">MESSAGE SENT</div>
+        <p class="form-success-text">Thanks for getting in touch. We'll get back to you within 24 hours.</p>
+      </div>
+      <div data-fs-error style="display:none;">
+        <span class="fs-error-msg">Something went wrong — please try again or email us directly.</span>
+      </div>
+      <form class="contact-form" id="contact-form">
         <div class="form-row">
           <div class="form-group">
             <label for="fname">Name</label>
-            <input type="text" id="fname" name="name" placeholder="Your name" required/>
+            <input type="text" id="fname" name="name" placeholder="Your name" required data-fs-field/>
+            <span class="fs-error-msg" data-fs-error="name"></span>
           </div>
           <div class="form-group">
             <label for="femail">Email</label>
-            <input type="email" id="femail" name="email" placeholder="your@email.com" required/>
+            <input type="email" id="femail" name="email" placeholder="your@email.com" required data-fs-field/>
+            <span class="fs-error-msg" data-fs-error="email"></span>
           </div>
         </div>
         <div class="form-row">
           <div class="form-group">
             <label for="fphone">Phone <span style="opacity:0.5;">(optional)</span></label>
-            <input type="tel" id="fphone" name="phone" placeholder="+44"/>
+            <input type="tel" id="fphone" name="phone" placeholder="+44" data-fs-field/>
           </div>
           <div class="form-group">
             <label for="fsubject">Subject</label>
-            <select id="fsubject" name="subject" required>
+            <select id="fsubject" name="subject" required data-fs-field>
               <option value="" disabled selected>Select a subject</option>
               <option>Event Enquiry</option>
               <option>Tour Enquiry</option>
               <option>General Enquiry</option>
               <option>Press / Media</option>
             </select>
+            <span class="fs-error-msg" data-fs-error="subject"></span>
           </div>
         </div>
         <div class="form-group">
           <label for="fmessage">Message</label>
-          <textarea id="fmessage" name="message" placeholder="Tell us what you're after..." required></textarea>
+          <textarea id="fmessage" name="message" placeholder="Tell us what you're after..." required data-fs-field></textarea>
+          <span class="fs-error-msg" data-fs-error="message"></span>
         </div>
-        <button type="submit" class="form-submit">Send Message →</button>
+        <button type="submit" class="form-submit" data-fs-submit-btn>Send Message →</button>
         <p class="form-note">We'll get back to you within 24 hours.</p>
       </form>
     </div>
@@ -227,6 +243,10 @@
 </div>
 
 <script>
+  // Formspree
+  window.formspree = window.formspree || function() { (formspree.q = formspree.q || []).push(arguments); };
+  formspree('initForm', { formElement: '#contact-form', formId: 'xjgpwdbz' });
+
   // Cursor
   const cursor=document.getElementById('cursor'),ring=document.getElementById('cursorRing');
   document.addEventListener('mousemove',e=>{cursor.style.left=e.clientX+'px';cursor.style.top=e.clientY+'px';ring.style.left=e.clientX+'px';ring.style.top=e.clientY+'px';});
@@ -240,5 +260,6 @@
   new IntersectionObserver((entries)=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in-view');});},{threshold:0.12}).observe&&revealEls.forEach(el=>new IntersectionObserver((entries)=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in-view');});},{threshold:0.12}).observe(el));
   setTimeout(()=>revealEls.forEach(el=>el.classList.add('in-view')),100);
 </script>
+<script src="https://unpkg.com/@formspree/ajax@1" defer></script>
 </body>
 </html>
