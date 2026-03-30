@@ -580,9 +580,8 @@
       .hero-content{padding:0 1.5rem 5rem;}
       /* Shift hero image right on mobile so the car's rear & exhausts are in frame */
       .hero-scene { object-position: 72% 40%; }
-      #offer,#about,#route,#signup,#events-preview,#tours-preview{padding:5rem 1.5rem;}
-      .ep-grid,.tp-grid{grid-template-columns:1fr;}
-      .events-preview-header,.tours-preview-header{flex-direction:column;align-items:flex-start;}
+      #offer,#about,#route,#signup,#about-teaser{padding:5rem 1.5rem;}
+      #about-teaser > div{grid-template-columns:1fr;gap:3rem;}
       .offer-layout{grid-template-columns:1fr;gap:3rem;}.offer-sidebar{position:static;}.offer-cards{grid-template-columns:1fr;}
       .about-layout{grid-template-columns:1fr;gap:3rem;}
       /* Reduce the SVG car frame height — 3/4 is massive on mobile */
@@ -795,31 +794,32 @@
   </div>
 </section>
 
-<!-- EVENTS PREVIEW -->
-<section id="events-preview">
-  <div class="events-preview-inner">
-    <div class="events-preview-header">
-      <div>
-        <div class="section-label reveal">What's On</div>
-        <h2 class="h-section reveal rd1">UPCOMING<br>EVENTS</h2>
+<!-- ABOUT TEASER -->
+<section id="about-teaser" style="background:var(--white-section);padding:8rem 3rem;">
+  <div style="max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:8rem;align-items:center;">
+    <div>
+      <div class="section-label-dark reveal">Who We Are</div>
+      <h2 class="h-section-ink reveal rd1">BORN TO<br>DRIVE</h2>
+      <p class="reveal rd2" style="font-size:0.95rem;line-height:1.85;color:var(--ink-light);margin-top:1.6rem;">Apex Drive was founded by a group of passionate drivers who believed that the greatest roads in the world deserve to be driven properly. In the right cars, with the right people, at the right pace.</p>
+      <p class="reveal rd2" style="font-size:0.95rem;line-height:1.85;color:var(--ink-light);margin-top:1rem;">We plan every route, every stop, and every detail so that from the first ignition to the final handshake, the experience is one you will talk about for years.</p>
+      <div class="reveal rd3" style="display:flex;gap:3rem;margin-top:2.8rem;padding-top:2rem;border-top:1px solid rgba(20,20,20,0.1);">
+        <div>
+          <div style="font-family:var(--font-display);font-size:3rem;line-height:1;color:var(--ink);">12+</div>
+          <div style="font-family:var(--font-condensed);font-size:0.62rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--ink-muted);margin-top:0.3rem;">Annual Events</div>
+        </div>
+        <div>
+          <div style="font-family:var(--font-display);font-size:3rem;line-height:1;color:var(--ink);">500+</div>
+          <div style="font-family:var(--font-condensed);font-size:0.62rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--ink-muted);margin-top:0.3rem;">Members</div>
+        </div>
+        <div>
+          <div style="font-family:var(--font-display);font-size:3rem;line-height:1;color:var(--ink);">5</div>
+          <div style="font-family:var(--font-condensed);font-size:0.62rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--ink-muted);margin-top:0.3rem;">Welsh Routes</div>
+        </div>
       </div>
-      <a href="events.html" class="see-all-link reveal rd2">View all events →</a>
     </div>
-    <div class="ep-grid" id="homeEventCards"></div>
-  </div>
-</section>
-
-<!-- TOURS PREVIEW -->
-<section id="tours-preview">
-  <div class="tours-preview-inner">
-    <div class="tours-preview-header">
-      <div>
-        <div class="section-label-dark reveal">Drive in Company</div>
-        <h2 class="h-section-ink reveal rd1">CURATED<br>TOURS</h2>
-      </div>
-      <a href="tours.html" class="see-all-link-dark reveal rd2">View all tours →</a>
+    <div class="reveal rd1" style="aspect-ratio:4/5;overflow:hidden;background:#1a1a1a;">
+      <img src="https://res.cloudinary.com/diopdbroz/image/upload/w_800,q_auto,f_auto/v1774665745/Gemini_Generated_Image_msy2vmsy2vmsy2vm_tdpozj.png" alt="Apex Drive" style="width:100%;height:100%;object-fit:cover;display:block;"/>
     </div>
-    <div class="tp-grid" id="homeTourCards"></div>
   </div>
 </section>
 
