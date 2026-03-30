@@ -71,11 +71,17 @@
 
     /* Event rows */
     .event-row{display:grid;grid-template-columns:120px 1fr auto;gap:3rem;align-items:start;padding:2.4rem 0;border-top:1px solid rgba(255,255,255,0.06);transition:background 0.2s;}
+    .event-row.has-thumb{grid-template-columns:120px 160px 1fr auto;}
     .event-row:last-child{border-bottom:1px solid rgba(255,255,255,0.06);}
     .event-row-date{text-align:center;}
     .event-row-day{font-family:var(--font-display);font-size:3.8rem;line-height:0.85;color:var(--rosso);}
     .event-row-month{font-family:var(--font-condensed);font-size:0.62rem;letter-spacing:0.28em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin-top:0.3rem;}
     .event-row-year{font-family:var(--font-condensed);font-size:0.62rem;letter-spacing:0.18em;color:rgba(255,255,255,0.18);}
+    .event-row-thumb{width:160px;height:110px;position:relative;flex-shrink:0;overflow:hidden;cursor:pointer;}
+    .event-row-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+    .event-row-thumb .play-btn{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.35);transition:background 0.2s;}
+    .event-row-thumb:hover .play-btn{background:rgba(0,0,0,0.55);}
+    .event-row-thumb .play-btn svg{width:36px;height:36px;fill:rgba(255,255,255,0.9);}
     .event-row-body{}
     .event-row-name{font-family:var(--font-condensed);font-size:1.5rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--white);margin-bottom:0.35rem;}
     .event-row-location{font-family:var(--font-condensed);font-size:0.7rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:0.9rem;display:flex;align-items:center;gap:0.5rem;}
@@ -92,8 +98,17 @@
     .btn-event.outline{background:transparent;border:1px solid rgba(255,255,255,0.18);color:rgba(255,255,255,0.4);}
     .btn-event.outline:hover{border-color:rgba(255,255,255,0.5);color:var(--white);}
 
-    /* No events message */
+    /* Loading / empty */
     .no-events{padding:5rem 0;text-align:center;font-family:var(--font-condensed);font-size:0.8rem;letter-spacing:0.16em;text-transform:uppercase;color:rgba(255,255,255,0.2);}
+    .loading-state{padding:5rem 0;text-align:center;font-family:var(--font-condensed);font-size:0.75rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,255,255,0.18);}
+
+    /* VIDEO MODAL */
+    .video-modal{position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,0.92);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.3s;}
+    .video-modal.open{opacity:1;pointer-events:all;}
+    .video-modal-inner{position:relative;width:90vw;max-width:900px;}
+    .video-modal-inner iframe{width:100%;aspect-ratio:16/9;border:none;display:block;}
+    .video-modal-close{position:absolute;top:-2.5rem;right:0;background:none;border:none;color:rgba(255,255,255,0.5);font-size:1.4rem;cursor:pointer;font-family:var(--font-condensed);letter-spacing:0.12em;}
+    .video-modal-close:hover{color:var(--white);}
 
     /* REVEAL */
     .reveal{opacity:0;transform:translateY(28px);transition:opacity 0.7s ease,transform 0.7s ease;}
@@ -123,7 +138,9 @@
       .burger{display:flex;}
       .page-hero{padding:8rem 1.5rem 3rem;}
       #events-list{padding:3rem 1.5rem 5rem;}
-      .event-row{grid-template-columns:80px 1fr;gap:1.5rem;}
+      .event-row{grid-template-columns:80px 1fr;}
+      .event-row.has-thumb{grid-template-columns:80px 1fr;}
+      .event-row-thumb{display:none;}
       .event-row-action{grid-column:1/-1;flex-direction:row;align-items:center;justify-content:space-between;}
       .event-row-day{font-size:2.8rem;}
       footer{grid-template-columns:1fr;text-align:center;}
@@ -156,7 +173,7 @@
 </nav>
 
 <div class="mobile-drawer" id="mobileDrawer">
-  <button class="drawer-close" id="drawerClose">✕</button>
+  <button class="drawer-close" id="drawerClose">&#x2715;</button>
   <ul>
     <li><a href="index.html">Home</a></li>
     <li><a href="index.html#route">Roads</a></li>
@@ -184,7 +201,9 @@
       <button class="filter-btn" data-filter="waitlist">Waitlist</button>
       <button class="filter-btn" data-filter="sold-out">Sold Out</button>
     </div>
-    <div id="eventsList"></div>
+    <div id="eventsList">
+      <div class="loading-state">Loading events...</div>
+    </div>
   </div>
 </section>
 
@@ -212,110 +231,139 @@
   <div></div>
 </div>
 
-<script>
-  // ─────────────────────────────────────────────────────────────
-  // EVENTS DATA — edit this array to add/remove/update events
-  // status: "open" | "waitlist" | "sold-out"
-  // ─────────────────────────────────────────────────────────────
-  const EVENTS = [
-    {
-      day: "14",
-      month: "Jun",
-      year: "2025",
-      name: "Dragon's Back — Summer Edition",
-      location: "Snowdonia, North Wales",
-      description: "A full day on the finest roads in Snowdonia. Starting from Betws-y-Coed, we take in the Horseshoe Pass, Bwlch y Groes, and finish on the edge of the Cambrian Mountains. Briefing, convoy driving, and an evening meal included.",
-      tags: ["Full Day", "Convoy Drive", "Evening Meal"],
-      spots: "3 places remaining",
-      status: "open",
-      ctaLink: "contact.html"
-    },
-    {
-      day: "19",
-      month: "Jul",
-      year: "2025",
-      name: "Elan Valley Dawn Run",
-      location: "Mid Wales",
-      description: "An early morning run through the Elan Valley reservoir roads — arguably some of the most beautiful tarmac in Wales. Limited to 8 cars. Depart at sunrise.",
-      tags: ["Half Day", "Morning Run", "Scenic"],
-      spots: "Waitlist only",
-      status: "waitlist",
-      ctaLink: "contact.html"
-    },
-    {
-      day: "06",
-      month: "Sep",
-      year: "2025",
-      name: "Black Mountain Blast",
-      location: "Brecon Beacons, South Wales",
-      description: "The Black Mountain Pass from Brynamman to Llangadog — a road that demands respect and rewards talent. This is an unaccompanied timed appreciation run with a post-drive debrief.",
-      tags: ["Half Day", "South Wales", "Performance"],
-      spots: "Sold out",
-      status: "sold-out",
-      ctaLink: "contact.html"
-    },
-    {
-      day: "18",
-      month: "Oct",
-      year: "2025",
-      name: "Autumn Highlands Tour",
-      location: "Wales & Borders",
-      description: "A two-day touring event taking in the best of mid and north Wales as the leaves turn. Overnight stay included. Routes confirmed one week before departure.",
-      tags: ["2 Days", "Touring", "Overnight"],
-      spots: "8 places available",
-      status: "open",
-      ctaLink: "contact.html"
-    }
-  ];
+<!-- VIDEO MODAL -->
+<div class="video-modal" id="videoModal">
+  <div class="video-modal-inner">
+    <button class="video-modal-close" id="videoModalClose">&#x2715; Close</button>
+    <iframe id="videoModalFrame" src="" allowfullscreen allow="autoplay; encrypted-media"></iframe>
+  </div>
+</div>
 
-  // ─────────────────────────────────────────────────────────────
-  // Render events
-  // ─────────────────────────────────────────────────────────────
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+  const SUPABASE_URL = 'https://xjwscbygqkyvrkpmooak.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_k8LLG_aCQx7UsD4r0QwKGw_JxrEsrWU';
+  const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  let allEvents = [];
+  let activeFilter = 'all';
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+
+  function getYouTubeId(url) {
+    if (!url) return null;
+    const m = url.match(/(?:youtu\.be\/|v=|\/embed\/)([A-Za-z0-9_-]{11})/);
+    return m ? m[1] : null;
+  }
+
+  function parseDate(iso) {
+    if (!iso) return { day: '', month: '', year: '' };
+    const [y, m, d] = iso.split('-');
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return { day: String(parseInt(d)), month: months[parseInt(m) - 1] || '', year: y };
+  }
+
+  function escHtml(str) {
+    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── Render ────────────────────────────────────────────────────────────────
+
   function renderEvents(filter) {
+    activeFilter = filter;
     const container = document.getElementById('eventsList');
-    const filtered = filter === 'all' ? EVENTS : EVENTS.filter(e => e.status === filter);
+    const filtered = filter === 'all' ? allEvents : allEvents.filter(e => e.status === filter);
 
     if (filtered.length === 0) {
       container.innerHTML = '<div class="no-events">No events in this category right now.</div>';
       return;
     }
 
-    container.innerHTML = filtered.map((ev, i) => `
-      <div class="event-row reveal" style="transition-delay:${i * 0.08}s" data-status="${ev.status}">
-        <div class="event-row-date">
-          <div class="event-row-day">${ev.day}</div>
-          <div class="event-row-month">${ev.month}</div>
-          <div class="event-row-year">${ev.year}</div>
-        </div>
-        <div class="event-row-body">
-          <div class="event-row-name">${ev.name}</div>
-          <div class="event-row-location">${ev.location}</div>
-          <p class="event-row-desc">${ev.description}</p>
-          <div class="event-row-tags">
-            ${ev.tags.map(t => `<span class="event-tag">${t}</span>`).join('')}
-            <span class="event-tag spots">${ev.spots}</span>
-          </div>
-        </div>
-        <div class="event-row-action">
-          <span class="event-status${ev.status === 'sold-out' ? ' sold-out' : ''}">${
-            ev.status === 'open' ? 'Spaces available' :
-            ev.status === 'waitlist' ? 'Waitlist open' : 'Sold out'
-          }</span>
-          ${ev.status !== 'sold-out'
-            ? `<a href="${ev.ctaLink}" class="btn-event">Register Interest →</a>`
-            : `<span class="btn-event outline" style="pointer-events:none">Sold Out</span>`
-          }
-        </div>
-      </div>
-    `).join('');
+    container.innerHTML = filtered.map((ev, i) => {
+      const { day, month, year } = parseDate(ev.date);
+      const ytId = getYouTubeId(ev.video_url);
+      const hasThumb = !!(ytId || ev.photo_url);
 
-    // re-trigger reveal on new elements
+      // Thumbnail HTML
+      let thumbHtml = '';
+      if (ytId) {
+        thumbHtml = `
+          <div class="event-row-thumb" onclick="openVideoModal('${ytId}')">
+            <img src="https://i.ytimg.com/vi/${ytId}/maxresdefault.jpg" alt="${escHtml(ev.name)}" loading="lazy"/>
+            <div class="play-btn">
+              <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+          </div>`;
+      } else if (ev.photo_url) {
+        thumbHtml = `
+          <div class="event-row-thumb">
+            <img src="${escHtml(ev.photo_url)}" alt="${escHtml(ev.name)}" loading="lazy"/>
+          </div>`;
+      }
+
+      // Includes tags
+      let includesTags = '';
+      if (ev.includes) {
+        const items = ev.includes.split('\n').map(s => s.trim()).filter(Boolean);
+        includesTags = items.map(t => `<span class="event-tag">${escHtml(t)}</span>`).join('');
+      }
+
+      // Duration tag
+      const durationTag = ev.duration ? `<span class="event-tag">${escHtml(ev.duration)}</span>` : '';
+
+      // Spaces tag
+      const spacesTag = ev.spaces ? `<span class="event-tag spots">${escHtml(ev.spaces)}</span>` : '';
+
+      const statusLabel = ev.status === 'open' ? 'Spaces available'
+        : ev.status === 'waitlist' ? 'Waitlist open' : 'Sold out';
+
+      return `
+        <div class="event-row${hasThumb ? ' has-thumb' : ''} reveal" style="transition-delay:${i * 0.08}s" data-status="${ev.status || 'open'}">
+          <div class="event-row-date">
+            <div class="event-row-day">${escHtml(day)}</div>
+            <div class="event-row-month">${escHtml(month)}</div>
+            <div class="event-row-year">${escHtml(year)}</div>
+          </div>
+          ${thumbHtml}
+          <div class="event-row-body">
+            <div class="event-row-name">${escHtml(ev.name)}</div>
+            <div class="event-row-location">${escHtml(ev.location || '')}</div>
+            <p class="event-row-desc">${escHtml(ev.description || '')}</p>
+            <div class="event-row-tags">
+              ${durationTag}${includesTags}${spacesTag}
+            </div>
+          </div>
+          <div class="event-row-action">
+            <span class="event-status${ev.status === 'sold-out' ? ' sold-out' : ''}">${statusLabel}</span>
+            ${ev.status !== 'sold-out'
+              ? `<a href="contact.html" class="btn-event">Register Interest &#x2192;</a>`
+              : `<span class="btn-event outline" style="pointer-events:none">Sold Out</span>`
+            }
+          </div>
+        </div>`;
+    }).join('');
+
+    // Trigger reveal on freshly rendered rows
     document.querySelectorAll('#eventsList .reveal').forEach(el => {
       setTimeout(() => el.classList.add('in-view'), 50);
     });
   }
 
-  // Filter buttons
+  // ── Fetch ─────────────────────────────────────────────────────────────────
+
+  async function fetchEvents() {
+    const { data, error } = await sb.from('events').select('*').order('date', { ascending: true });
+    if (error) {
+      document.getElementById('eventsList').innerHTML = '<div class="no-events">Unable to load events right now.</div>';
+      return;
+    }
+    allEvents = data || [];
+    renderEvents(activeFilter);
+  }
+
+  // ── Filter buttons ────────────────────────────────────────────────────────
+
   document.getElementById('filterBar').addEventListener('click', e => {
     const btn = e.target.closest('.filter-btn');
     if (!btn) return;
@@ -324,25 +372,49 @@
     renderEvents(btn.dataset.filter);
   });
 
-  renderEvents('all');
+  // ── Video modal ───────────────────────────────────────────────────────────
 
-  // Cursor
+  window.openVideoModal = function(ytId) {
+    const modal = document.getElementById('videoModal');
+    document.getElementById('videoModalFrame').src = `https://www.youtube.com/embed/${ytId}?autoplay=1`;
+    modal.classList.add('open');
+  };
+
+  function closeVideoModal() {
+    document.getElementById('videoModal').classList.remove('open');
+    document.getElementById('videoModalFrame').src = '';
+  }
+
+  document.getElementById('videoModalClose').addEventListener('click', closeVideoModal);
+  document.getElementById('videoModal').addEventListener('click', e => {
+    if (e.target === document.getElementById('videoModal')) closeVideoModal();
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeVideoModal(); });
+
+  // ── Cursor ────────────────────────────────────────────────────────────────
+
   const cursor = document.getElementById('cursor'), ring = document.getElementById('cursorRing');
   document.addEventListener('mousemove', e => {
     cursor.style.left = e.clientX + 'px'; cursor.style.top = e.clientY + 'px';
     ring.style.left = e.clientX + 'px'; ring.style.top = e.clientY + 'px';
   });
 
-  // Mobile drawer
+  // ── Mobile drawer ─────────────────────────────────────────────────────────
+
   document.getElementById('burgerBtn').addEventListener('click', () => document.getElementById('mobileDrawer').classList.add('open'));
   document.getElementById('drawerClose').addEventListener('click', () => document.getElementById('mobileDrawer').classList.remove('open'));
 
-  // Reveal
+  // ── Reveal ────────────────────────────────────────────────────────────────
+
   const revealEls = document.querySelectorAll('.reveal');
   revealEls.forEach(el => new IntersectionObserver((entries) => {
     entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in-view'); });
   }, { threshold: 0.1 }).observe(el));
   setTimeout(() => revealEls.forEach(el => el.classList.add('in-view')), 100);
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+
+  await fetchEvents();
 </script>
 </body>
 </html>

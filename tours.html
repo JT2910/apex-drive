@@ -82,8 +82,29 @@
     .tour-includes-list li::before{content:'';display:block;width:8px;height:1px;background:var(--rosso);flex-shrink:0;}
     .tour-card-price{font-family:var(--font-condensed);font-size:0.7rem;letter-spacing:0.12em;color:rgba(255,255,255,0.22);margin-bottom:1.2rem;}
     .tour-card-price strong{font-size:1.1rem;color:rgba(255,255,255,0.55);letter-spacing:0.04em;}
+    .tour-card-avail{font-family:var(--font-condensed);font-size:0.62rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.25);margin-bottom:1rem;}
     .btn-tour{font-family:var(--font-condensed);font-size:0.7rem;letter-spacing:0.22em;text-transform:uppercase;background:transparent;border:1px solid rgba(255,255,255,0.18);color:rgba(255,255,255,0.5);padding:0.9rem 1.8rem;cursor:pointer;text-decoration:none;display:inline-block;transition:all 0.2s;align-self:flex-start;}
     .btn-tour:hover{background:var(--rosso);border-color:var(--rosso);color:var(--white);}
+
+    /* Tour card image slot */
+    .tour-card-image{width:100%;aspect-ratio:16/9;overflow:hidden;margin-bottom:1.6rem;position:relative;background:rgba(255,255,255,0.03);}
+    .tour-card-image img{width:100%;height:100%;object-fit:cover;display:block;}
+    .tour-card-image .mountain-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
+    .tour-card-image .mountain-placeholder svg{width:60%;opacity:0.06;}
+    .tour-card-image .play-btn{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.32);cursor:pointer;transition:background 0.2s;}
+    .tour-card-image .play-btn:hover{background:rgba(0,0,0,0.52);}
+    .tour-card-image .play-btn svg{width:42px;height:42px;fill:rgba(255,255,255,0.88);}
+
+    /* Loading state */
+    .loading-state{padding:5rem 0;text-align:center;font-family:var(--font-condensed);font-size:0.75rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,255,255,0.18);}
+
+    /* VIDEO MODAL */
+    .video-modal{position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,0.92);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.3s;}
+    .video-modal.open{opacity:1;pointer-events:all;}
+    .video-modal-inner{position:relative;width:90vw;max-width:900px;}
+    .video-modal-inner iframe{width:100%;aspect-ratio:16/9;border:none;display:block;}
+    .video-modal-close{position:absolute;top:-2.5rem;right:0;background:none;border:none;color:rgba(255,255,255,0.5);font-size:1.4rem;cursor:pointer;font-family:var(--font-condensed);letter-spacing:0.12em;}
+    .video-modal-close:hover{color:var(--white);}
 
     /* BESPOKE SECTION */
     #bespoke{background:var(--white-section);padding:7rem 3rem;}
@@ -159,7 +180,7 @@
 </nav>
 
 <div class="mobile-drawer" id="mobileDrawer">
-  <button class="drawer-close" id="drawerClose">✕</button>
+  <button class="drawer-close" id="drawerClose">&#x2715;</button>
   <ul>
     <li><a href="index.html">Home</a></li>
     <li><a href="index.html#route">Roads</a></li>
@@ -178,13 +199,15 @@
   </div>
 </div>
 
-<!-- TOUR CARDS — rendered from JS data below -->
+<!-- TOUR CARDS -->
 <section id="tours-grid">
   <div class="tours-inner">
     <div class="tours-section-header reveal">
       <div class="section-label">Our Tours</div>
     </div>
-    <div class="tour-cards" id="tourCards"></div>
+    <div class="tour-cards" id="tourCards">
+      <div class="loading-state" style="grid-column:1/-1">Loading tours...</div>
+    </div>
   </div>
 </section>
 
@@ -195,7 +218,7 @@
       <div class="section-label-dark reveal">Private Experiences</div>
       <h2 class="h-dark reveal rd1">BESPOKE<br>DRIVES</h2>
       <p class="bespoke-body reveal rd2">Not every drive fits a calendar. If you want something tailored — a private route, a specific car, a group of friends — we'll build it from scratch. Tell us what you have in mind.</p>
-      <a href="contact.html" class="btn-bespoke reveal rd3">Talk to Us →</a>
+      <a href="contact.html" class="btn-bespoke reveal rd3">Talk to Us &#x2192;</a>
     </div>
     <div class="bespoke-features reveal rd1">
       <div class="bespoke-feature">
@@ -254,84 +277,194 @@
   <div></div>
 </div>
 
-<script>
-  // ─────────────────────────────────────────────────────────────
-  // TOURS DATA — edit this array to add/remove/update tours
-  // availability: "available" | "limited" | "enquire"
-  // ─────────────────────────────────────────────────────────────
-  const TOURS = [
-    {
-      name: "The Dragon Loop",
-      duration: "2 Days",
-      region: "North & Mid Wales",
-      description: "Our flagship tour. Start and finish in Snowdonia, taking in Horseshoe Pass, Bwlch y Groes, and the Cambrian Mountains. Overnight in a handpicked country hotel with dinner and debrief.",
-      includes: ["Route briefing pack", "Overnight accommodation", "Evening dinner", "Morning coffee stop"],
-      price: "From £595 per car",
-      availability: "available",
-      ctaLink: "contact.html"
-    },
-    {
-      name: "South Wales Sprint",
-      duration: "1 Day",
-      region: "South Wales",
-      description: "The Black Mountain Pass, Rhigos Mountain Road, and Brecon Beacons in a single day. Hard, fast, and relentless. Lunch stop at altitude. Back before dark.",
-      includes: ["Full route GPS file", "Lunch included", "Post-drive debrief", "Photography spots guide"],
-      price: "From £195 per car",
-      availability: "limited",
-      ctaLink: "contact.html"
-    },
-    {
-      name: "Wales End to End",
-      duration: "4 Days",
-      region: "Full Country",
-      description: "The complete Wales driving experience — Pembrokeshire coast roads to the Snowdonia peaks. Four days, five mountain passes, two valleys. Entirely self-paced with daily briefings.",
-      includes: ["3 nights accommodation", "All meals included", "Daily route packs", "Welcome & farewell dinner"],
-      price: "From £1,495 per car",
-      availability: "enquire",
-      ctaLink: "contact.html"
+<!-- VIDEO MODAL -->
+<div class="video-modal" id="videoModal">
+  <div class="video-modal-inner">
+    <button class="video-modal-close" id="videoModalClose">&#x2715; Close</button>
+    <iframe id="videoModalFrame" src="" allowfullscreen allow="autoplay; encrypted-media"></iframe>
+  </div>
+</div>
+
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+  const SUPABASE_URL = 'https://xjwscbygqkyvrkpmooak.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_k8LLG_aCQx7UsD4r0QwKGw_JxrEsrWU';
+  const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+
+  function formatDays(n) {
+    n = parseInt(n);
+    if (n === 1) return '1 Day';
+    return n + ' Days / ' + (n - 1) + ' ' + (n - 1 === 1 ? 'Night' : 'Nights');
+  }
+
+  function getYouTubeId(url) {
+    if (!url) return null;
+    const m = url.match(/(?:youtu\.be\/|v=|\/embed\/)([A-Za-z0-9_-]{11})/);
+    return m ? m[1] : null;
+  }
+
+  function escHtml(str) {
+    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  const availabilityLabel = {
+    available: 'Spaces available',
+    limited: 'Limited spaces',
+    enquire: 'Enquire for availability'
+  };
+
+  // ── Mountain placeholder SVG ──────────────────────────────────────────────
+
+  const mountainSVG = `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+    <polygon points="0,120 60,30 120,120" opacity="0.6"/>
+    <polygon points="80,120 140,20 200,120" opacity="0.8"/>
+    <polygon points="100,120 160,50 200,120" opacity="0.4"/>
+  </svg>`;
+
+  // ── Render ────────────────────────────────────────────────────────────────
+
+  function renderTours(tours) {
+    const container = document.getElementById('tourCards');
+
+    if (!tours || tours.length === 0) {
+      container.innerHTML = '<div class="loading-state" style="grid-column:1/-1">No tours available right now.</div>';
+      return;
     }
-  ];
 
-  // ─────────────────────────────────────────────────────────────
-  // Render tour cards
-  // ─────────────────────────────────────────────────────────────
-  const availabilityLabel = { available: 'Spaces available', limited: 'Limited spaces', enquire: 'Enquire for availability' };
+    container.innerHTML = tours.map((t, i) => {
+      const ytId = getYouTubeId(t.video_url);
 
-  document.getElementById('tourCards').innerHTML = TOURS.map((t, i) => `
-    <div class="tour-card reveal" style="transition-delay:${i * 0.12}s">
-      <div class="tour-card-index">${String(i + 1).padStart(2, '0')}</div>
-      <div class="tour-card-label">${t.region}</div>
-      <div class="tour-card-name">${t.name}</div>
-      <div class="tour-card-duration">${t.duration}</div>
-      <p class="tour-card-desc">${t.description}</p>
-      <div class="tour-card-includes">
-        <div class="tour-includes-label">Includes</div>
-        <ul class="tour-includes-list">
-          ${t.includes.map(item => `<li>${item}</li>`).join('')}
-        </ul>
-      </div>
-      <div class="tour-card-price">${t.price}</div>
-      <a href="${t.ctaLink}" class="btn-tour">${t.availability === 'enquire' ? 'Enquire →' : 'Register Interest →'}</a>
-    </div>
-  `).join('');
+      // Image slot
+      let imageHtml = '';
+      if (ytId) {
+        imageHtml = `
+          <div class="tour-card-image">
+            <img src="https://i.ytimg.com/vi/${ytId}/maxresdefault.jpg" alt="${escHtml(t.name)}" loading="lazy"/>
+            <div class="play-btn" onclick="openVideoModal('${ytId}')">
+              <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+          </div>`;
+      } else if (t.photo_url) {
+        imageHtml = `
+          <div class="tour-card-image">
+            <img src="${escHtml(t.photo_url)}" alt="${escHtml(t.name)}" loading="lazy"/>
+          </div>`;
+      } else {
+        imageHtml = `
+          <div class="tour-card-image">
+            <div class="mountain-placeholder">${mountainSVG}</div>
+          </div>`;
+      }
 
-  // Cursor
+      // Includes list
+      let includesHtml = '';
+      if (t.includes) {
+        const items = t.includes.split('\n').map(s => s.trim()).filter(Boolean);
+        if (items.length > 0) {
+          includesHtml = `
+            <div class="tour-card-includes">
+              <div class="tour-includes-label">Includes</div>
+              <ul class="tour-includes-list">
+                ${items.map(item => `<li>${escHtml(item)}</li>`).join('')}
+              </ul>
+            </div>`;
+        }
+      }
+
+      // Price display
+      let priceHtml = '';
+      if (t.price) {
+        const priceDisplay = t.price.startsWith('£')
+          ? `From <strong>${escHtml(t.price)}</strong> per car`
+          : escHtml(t.price);
+        priceHtml = `<div class="tour-card-price">${priceDisplay}</div>`;
+      }
+
+      // Availability
+      const availText = availabilityLabel[t.availability] || availabilityLabel.available;
+      const ctaText = t.availability === 'enquire' ? 'Enquire &#x2192;' : 'Register Interest &#x2192;';
+
+      // Duration
+      const durationText = t.days ? formatDays(t.days) : '';
+
+      return `
+        <div class="tour-card reveal" style="transition-delay:${i * 0.12}s">
+          <div class="tour-card-index">${String(i + 1).padStart(2, '0')}</div>
+          ${imageHtml}
+          <div class="tour-card-label">${escHtml(t.region || t.location || '')}</div>
+          <div class="tour-card-name">${escHtml(t.name)}</div>
+          ${durationText ? `<div class="tour-card-duration">${escHtml(durationText)}</div>` : ''}
+          <p class="tour-card-desc">${escHtml(t.description || '')}</p>
+          ${includesHtml}
+          ${priceHtml}
+          <div class="tour-card-avail">${escHtml(availText)}</div>
+          <a href="contact.html" class="btn-tour">${ctaText}</a>
+        </div>`;
+    }).join('');
+
+    // Trigger reveal on freshly rendered cards
+    document.querySelectorAll('#tourCards .reveal').forEach(el => {
+      setTimeout(() => el.classList.add('in-view'), 50);
+    });
+  }
+
+  // ── Fetch ─────────────────────────────────────────────────────────────────
+
+  async function fetchTours() {
+    const { data, error } = await sb.from('tours').select('*').order('name', { ascending: true });
+    if (error) {
+      document.getElementById('tourCards').innerHTML = '<div class="loading-state" style="grid-column:1/-1">Unable to load tours right now.</div>';
+      return;
+    }
+    renderTours(data || []);
+  }
+
+  // ── Video modal ───────────────────────────────────────────────────────────
+
+  window.openVideoModal = function(ytId) {
+    const modal = document.getElementById('videoModal');
+    document.getElementById('videoModalFrame').src = `https://www.youtube.com/embed/${ytId}?autoplay=1`;
+    modal.classList.add('open');
+  };
+
+  function closeVideoModal() {
+    document.getElementById('videoModal').classList.remove('open');
+    document.getElementById('videoModalFrame').src = '';
+  }
+
+  document.getElementById('videoModalClose').addEventListener('click', closeVideoModal);
+  document.getElementById('videoModal').addEventListener('click', e => {
+    if (e.target === document.getElementById('videoModal')) closeVideoModal();
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeVideoModal(); });
+
+  // ── Cursor ────────────────────────────────────────────────────────────────
+
   const cursor = document.getElementById('cursor'), ring = document.getElementById('cursorRing');
   document.addEventListener('mousemove', e => {
     cursor.style.left = e.clientX + 'px'; cursor.style.top = e.clientY + 'px';
     ring.style.left = e.clientX + 'px'; ring.style.top = e.clientY + 'px';
   });
 
-  // Mobile drawer
+  // ── Mobile drawer ─────────────────────────────────────────────────────────
+
   document.getElementById('burgerBtn').addEventListener('click', () => document.getElementById('mobileDrawer').classList.add('open'));
   document.getElementById('drawerClose').addEventListener('click', () => document.getElementById('mobileDrawer').classList.remove('open'));
 
-  // Reveal
+  // ── Reveal ────────────────────────────────────────────────────────────────
+
   const revealEls = document.querySelectorAll('.reveal');
   revealEls.forEach(el => new IntersectionObserver((entries) => {
     entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in-view'); });
   }, { threshold: 0.1 }).observe(el));
   setTimeout(() => revealEls.forEach(el => el.classList.add('in-view')), 100);
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+
+  await fetchTours();
 </script>
 </body>
 </html>
