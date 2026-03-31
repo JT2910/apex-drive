@@ -377,9 +377,11 @@
       // Price display
       let priceHtml = '';
       if (t.price) {
-        const priceDisplay = t.price.startsWith('£')
-          ? `From <strong>${escHtml(t.price)}</strong> per car`
-          : escHtml(t.price);
+        const isNumeric = /^\d/.test(t.price.trim());
+        const priceVal = t.price.startsWith('£') ? t.price : isNumeric ? `£${t.price}` : t.price;
+        const priceDisplay = (t.price.startsWith('£') || isNumeric)
+          ? `From <strong>${escHtml(priceVal)}</strong> per car`
+          : escHtml(priceVal);
         priceHtml = `<div class="tour-card-price">${priceDisplay}</div>`;
       }
 
